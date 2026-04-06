@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aprobar Solicitud</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <div id="approvalCard" class="w-full max-w-lg bg-slate-800 rounded-2xl shadow-2xl border border-slate-700 overflow-hidden relative hidden">
+        <div class="bg-slate-900 px-8 py-6 border-b border-slate-700 text-center">
+            <h1 class="text-2xl font-bold text-white tracking-tight">Aprobar Solicitud de Sesión</h1>
+            <p class="text-sm text-slate-400 mt-1">La siguiente sesión requiere aprobación por estar fuera de horario.</p>
+        </div>
+
+        <div class="p-8 space-y-4">
+            <div id="sessionDetails" class="bg-slate-900/50 p-6 rounded-xl border border-slate-700/50">
+                <h3 class="text-lg font-medium text-white mb-4">Detalles de la Solicitud</h3>
+                <div class="space-y-2 text-sm text-slate-300">
+                    <p><strong>Artista:</strong> <span id="artistName"></span></p>
+                    <p><strong>Compañía:</strong> <span id="company"></span></p>
+                    <p><strong>Estudio:</strong> <span id="studio"></span></p>
+                    <p><strong>Fecha:</strong> <span id="bookingDate"></span></p>
+                    <p><strong>Horario:</strong> <span id="timeStart"></span> - <span id="timeEnd"></span></p>
+                    <p><strong>Solicitado por:</strong> <span id="pmEmail"></span></p>
+                </div>
+            </div>
+
+            <div id="actionButtons" class="flex justify-between space-x-4">
+                <button id="approveBtn" class="w-full bg-green-600 hover:bg-green-500 text-white font-semibold rounded-lg px-4 py-3 shadow transition-colors">
+                    <i class="fa-solid fa-check"></i> Aprobar
+                </button>
+                <button id="disapproveBtn" class="w-full bg-red-600 hover:bg-red-500 text-white font-semibold rounded-lg px-4 py-3 shadow transition-colors">
+                    <i class="fa-solid fa-times"></i> Rechazar
+                </button>
+                <button id="editBtn" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-lg px-4 py-3 shadow transition-colors">
+                    <i class="fa-solid fa-pencil"></i> Editar
+                </button>
+            </div>
+             <div id="statusMessage" class="hidden rounded-lg p-4 text-sm font-medium text-center border"></div>
+        </div>
+    </div>
+    <div id="loading" class="text-white">Cargando...</div>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="approval.js"></script>
+</body>
+</html>

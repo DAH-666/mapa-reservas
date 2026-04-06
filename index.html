@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudioFlow - Portal de Solicitudes</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Librería Oficial de Google Identity Services -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <link rel="stylesheet" href="styles.css">
+
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <!-- Contenedor Principal -->
+    <div class="w-full max-w-lg bg-slate-800 rounded-2xl shadow-2xl border border-slate-700 overflow-hidden relative">
+        
+        <!-- Header -->
+        <div class="bg-slate-900 px-8 py-6 border-b border-slate-700 text-center">
+            <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-indigo-500/10 mb-4">
+                <i class="fa-solid fa-wave-square text-indigo-500 text-2xl"></i>
+            </div>
+            <h1 class="text-2xl font-bold text-white tracking-tight">Solicitud de Estudio</h1>
+            <p class="text-sm text-slate-400 mt-1">Gestión directa vinculada a tu Google Workspace.</p>
+        </div>
+
+        <!-- SECCIÓN 1: Login con Google (Visible por defecto) -->
+        <div id="loginSection" class="p-8 text-center space-y-6">
+            <div class="bg-slate-900/50 p-6 rounded-xl border border-slate-700/50">
+                <i class="fa-brands fa-google text-4xl text-slate-400 mb-4"></i>
+                <h3 class="text-lg font-medium text-white mb-2">Autenticación Requerida</h3>
+                <p class="text-sm text-slate-400 mb-6">Inicia sesión con tu correo corporativo para agendar sesiones a tu nombre.</p>
+                
+                <button id="googleLoginBtn" class="w-full bg-white hover:bg-slate-100 text-slate-900 font-semibold rounded-lg px-4 py-3 shadow transition-colors flex items-center justify-center gap-3">
+                    <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-5 h-5" alt="Google">
+                    <span>Continuar con Google</span>
+                </button>
+
+                <!-- Mensaje de Error de Login -->
+                <div id="loginError" class="hidden mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-sm text-red-400 font-medium">
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN 2: Formulario (Oculto hasta hacer login) -->
+        <form id="bookingForm" class="p-8 space-y-6 hidden">
+            
+            <!-- Perfil del PM Autenticado -->
+            <div class="flex items-center bg-indigo-500/10 p-4 rounded-xl border border-indigo-500/20">
+                <div class="w-10 h-10 rounded-full bg-indigo-500 flex items-center justify-center text-white font-bold" id="userInitial">
+                    <i class="fa-solid fa-user"></i>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm font-medium text-white">Sesión iniciada como:</p>
+                    <p class="text-xs text-indigo-300" id="userEmail">cargando...</p>
+                </div>
+                <button type="button" id="logoutBtn" class="ml-auto text-xs text-slate-400 hover:text-white underline">Salir</button>
+            </div>
+
+            <!-- Detalles de la Reserva -->
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-1">Nombre del Artista(s)</label>
+                    <input type="text" id="artistName" required
+                        class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition-colors" 
+                        placeholder="Ej. The Weeknd, Rosalía...">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-1">Compañía</label>
+                    <div class="relative">
+                        <select id="companySelect" required
+                            class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white appearance-none focus:outline-none focus:border-indigo-500 transition-colors">
+                            <option value="" disabled selected>Selecciona una compañía...</option>
+                        </select>
+                        <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-500 pointer-events-none"></i>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-1">Estudio Requerido</label>
+                    <div class="relative">
+                        <select id="studioSelect" required
+                            class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white appearance-none focus:outline-none focus:border-indigo-500 transition-colors">
+                            <option value="" disabled selected>Selecciona un espacio...</option>
+                            <option value="Control 1">Control 1</option>
+                            <option value="Control 2 + Sala B">Control 2 + Sala B</option>
+                            <option value="Control 3">Control 3</option>
+                            <option value="Control 5">Control 5</option>
+                            <option value="Control 6">Control 6</option>
+                            <option value="Suite de producción">Suite de producción</option>
+                        </select>
+                        <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-500 pointer-events-none"></i>
+                    </div>
+                </div>
+
+                <!-- Desplegable condicional para Sala Extra -->
+                <div id="extraRoomContainer" class="hidden">
+                    <label class="block text-sm font-medium text-slate-300 mb-1">¿Necesita sala de grabación extra?</label>
+                    <div class="relative">
+                        <select id="extraRoomSelect"
+                            class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white appearance-none focus:outline-none focus:border-indigo-500 transition-colors">
+                            <option value="" disabled selected>Selecciona una opción...</option>
+                            <option value="Control sin sala de grabacion.">Control sin sala de grabacion.</option>
+                            <option value="Control + Suite de producción">Control + Suite de producción</option>
+                        </select>
+                        <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-500 pointer-events-none"></i>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="md:col-span-3">
+                        <label class="block text-sm font-medium text-slate-300 mb-1">Día</label>
+                        <input type="date" id="bookingDate" required
+                            class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition-colors">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-1">Hora Inicio</label>
+                        <input type="time" id="timeStart" required
+                            class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition-colors">
+                    </div>
+                    
+                    <div class="flex items-center justify-center pt-6 hidden md:flex text-slate-500">
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-1">Hora Fin</label>
+                        <input type="time" id="timeEnd" required
+                            class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition-colors">
+                    </div>
+                </div>
+
+                <!-- Alerta de Horario Extendido (Fuera de 10:00 a 22:00) -->
+                <div id="extendedHoursAlert" class="hidden bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4 mt-2 transition-all">
+                    <div class="flex items-start gap-3">
+                        <i class="fa-solid fa-clock-rotate-left text-yellow-500 mt-0.5"></i>
+                        <div>
+                            <h4 class="text-sm font-bold text-yellow-500">Petición Especial: Fuera de horario</h4>
+                            <p class="text-xs text-yellow-200/80 mt-1">El horario operativo del estudio es de 10:00 a 22:00. Al enviar, se generará una petición de aprobación por correo electrónico.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Area de Mensajes de Estado -->
+            <div id="statusMessage" class="hidden rounded-lg p-4 text-sm font-medium text-center border"></div>
+
+            <button type="submit" id="submitBtn" 
+                class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-lg px-4 py-3.5 shadow-lg shadow-indigo-500/30 transition-all transform active:scale-95 flex items-center justify-center gap-2">
+                <i class="fa-regular fa-calendar-check"></i>
+                <span>Procesar Solicitud</span>
+            </button>
+        </form>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

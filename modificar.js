@@ -25,9 +25,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- 1. CARGAR DATOS DEL EVENTO ---
     
-    // Obtener los IDs de la URL (ej: ?modify=id1,id2)
     const urlParams = new URLSearchParams(window.location.search);
-    const idsToModify = urlParams.get('ids');
+    // Buscamos 'ids' (nuevo formato) o 'modify' (formato antiguo) para que funcione con cualquier correo
+    const idsToModify = urlParams.get('ids') || urlParams.get('modify');
 
     if (!idsToModify) {
         showError('No se ha especificado un ID de evento para modificar. Por favor, accede a esta página desde el enlace en el correo de confirmación.');

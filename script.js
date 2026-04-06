@@ -5,7 +5,7 @@ const GOOGLE_CLIENT_ID = '521209969592-0c3dhj0gp8sjt00nt8v12i9p0rm1a607.apps.goo
 const ALLOWED_DOMAINS = ['@mapastudios', '@rimasmusic', '@melodias']; 
 
 const CENTRAL_CALENDAR_ID = 'booking.madrid@mapastudios.com'; 
-const GAS_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbwVj2i_JMU2qsFgVoLzdbnTpc7660zYzOvNh_42ATNDfcH_j64cM4st1v_MTkt-mEvh5g/exec'; 
+const GAS_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxdo2VYgXk9dnPg0G1A3tp1K-b2EdK-kJBsTBcK8Gm6LJCBxdZPb613N-Ee8vXq4bnQ1w/exec'; 
 
 // ==========================================
 // Lógica de UI e Inicialización

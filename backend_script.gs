@@ -3,7 +3,7 @@
 // =====================================================================
 
 // ⚠️ IMPORTANTE: Cambia esta URL por la dirección real donde vayas a alojar tu portal HTML
-var PORTAL_URL = 'https://tu-sitio-web.com/portal_reservas.html'; 
+var PORTAL_URL = 'https://dah-666.github.io/mapa-reservas/portal_reservas.html'; 
 var CALENDAR_ID = 'booking.madrid@mapastudios.com';
 var MAIN_STUDIO_EMAIL = 'booking.madrid@mapastudios.com';
 

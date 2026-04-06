@@ -4,7 +4,7 @@
 
 // ⚠️ ¡ATENCIÓN! Reemplaza esta URL por la URL de tu Web App de Google Apps Script.
 // Es la misma que usas en el script.js principal.
-const GAS_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbzQmOhatLIpy7Ibnf0CUUEC6k9Xl0O-Y8A4_sbkPSOp0tmQ-NxaBNXcZ_jNbWSHeSZAfQ/exec';
+const GAS_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxdo2VYgXk9dnPg0G1A3tp1K-b2EdK-kJBsTBcK8Gm6LJCBxdZPb613N-Ee8vXq4bnQ1w/exec';
 
 document.addEventListener('DOMContentLoaded', () => {
     // --- OBTENER ELEMENTOS DEL DOM ---

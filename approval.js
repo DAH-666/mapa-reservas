@@ -60,20 +60,29 @@ document.addEventListener('DOMContentLoaded', () => {
         approveBtn.disabled = true;
         rejectBtn.disabled = true;
         actionButtons.classList.add('opacity-50', 'pointer-events-none');
+
+        // LÓGICA INTELIGENTE DE MEDIANOCHE
+        const startDateTimeObj = new Date(`${bookingDateInput.value}T${timeStartInput.value}:00`);
+        const endDateTimeObj = new Date(`${bookingDateInput.value}T${timeEndInput.value}:00`);
         
-        // Empaquetar los datos por si el admin hizo alguna modificación en el formulario
+        // Si la hora de fin es menor a la de inicio, le sumamos 1 día automáticamente
+        if (timeEndInput.value < timeStartInput.value) {
+            endDateTimeObj.setDate(endDateTimeObj.getDate() + 1);
+        }
+        
+        // Empaquetar los datos
         const newEventData = {
             summary: `${artistNameInput.value} - ${companySelect.value}`,
             location: studioSelect.value,
             description: `(Reserva gestionada y aprobada vía StudioFlow)`,
-            start: { dateTime: new Date(`${bookingDateInput.value}T${timeStartInput.value}`).toISOString() },
-            end: { dateTime: new Date(`${bookingDateInput.value}T${timeEndInput.value}`).toISOString() }
+            start: { dateTime: startDateTimeObj.toISOString() },
+            end: { dateTime: endDateTimeObj.toISOString() }
         };
 
         const payload = {
             action: 'updateSessionStatus',
             token: token,
-            status: statusAction, // Puede ser 'approve' o 'reject'
+            status: statusAction, // 'approve' o 'reject'
             pmEmail: pmEmailInput.value,
             events: [newEventData] 
         };
@@ -85,7 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
             body: JSON.stringify(payload)
         })
         .then(() => {
-            actionButtons.classList.add('hidden'); // Ocultar los botones de acción para que no pulse dos veces
+            actionButtons.classList.add('hidden');
             if(statusAction === 'approve') {
                 showStatus('success', '¡Aprobada! La sesión se ha añadido al calendario y el PM ha sido notificado.');
             } else {

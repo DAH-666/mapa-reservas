@@ -42,9 +42,13 @@
 
                 <div>
                     <label class="block text-sm font-medium text-slate-300 mb-1">Compañía</label>
-                    <input type="text" id="companyName" disabled
-                        class="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-3 text-slate-400 cursor-not-allowed" 
-                        placeholder="Compañía original de la reserva">
+                    <div class="relative">
+                        <select id="companySelect" required
+                            class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white appearance-none focus:outline-none focus:border-indigo-500 transition-colors">
+                            <option value="" disabled selected>Selecciona una compañía...</option>
+                        </select>
+                        <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-500 pointer-events-none"></i>
+                    </div>
                 </div>
 
                 <div>

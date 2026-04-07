@@ -2,8 +2,6 @@
 // SCRIPT PARA LA PÁGINA DE MODIFICACIÓN DE RESERVAS
 // =====================================================================
 
-// ⚠️ ¡ATENCIÓN! Reemplaza esta URL por la URL de tu Web App de Google Apps Script.
-// Es la misma que usas en el script.js principal.
 const GAS_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxdo2VYgXk9dnPg0G1A3tp1K-b2EdK-kJBsTBcK8Gm6LJCBxdZPb613N-Ee8vXq4bnQ1w/exec';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -18,6 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const artistNameInput = document.getElementById('artistName');
     const companyNameInput = document.getElementById('companyName');
     const pmEmailInput = document.getElementById('pmEmail');
+    const pmEmailContainer = document.getElementById('pmEmailContainer'); // NUEVO
     const studioSelect = document.getElementById('studioSelect');
     const bookingDateInput = document.getElementById('bookingDate');
     const timeStartInput = document.getElementById('timeStart');
@@ -25,13 +24,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- 1. CARGAR DATOS DEL EVENTO ---
     
+    // Obtener los IDs y el correo de la URL
     const urlParams = new URLSearchParams(window.location.search);
-    // Buscamos 'ids' (nuevo formato) o 'modify' (formato antiguo) para que funcione con cualquier correo
     const idsToModify = urlParams.get('ids') || urlParams.get('modify');
+    const pmEmailParam = urlParams.get('pm');
 
     if (!idsToModify) {
         showError('No se ha especificado un ID de evento para modificar. Por favor, accede a esta página desde el enlace en el correo de confirmación.');
         return;
+    }
+
+    // Autocompletar el email si viene en la URL
+    if (pmEmailParam) {
+        pmEmailInput.value = pmEmailParam;
+    } else {
+        // Fallback por si el PM usa el enlace de un correo antiguo sin el parámetro email
+        pmEmailContainer.classList.remove('hidden');
+        pmEmailInput.required = true;
     }
 
     // Guardamos los IDs en el campo oculto para usarlos al enviar el formulario
@@ -50,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Rellenamos el formulario con los datos recibidos
             artistNameInput.value = data.artist || '';
-            companyNameInput.value = data.company || ''; // Es un campo desactivado, solo informativo
+            companyNameInput.value = data.company || ''; 
             studioSelect.value = data.location || '';
             bookingDateInput.value = data.date || '';
             timeStartInput.value = data.timeStart || '';
@@ -84,23 +93,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Construimos el payload que espera la función doPost del backend
         const payload = {
-            oldIds: eventIdsInput.value, // Los IDs de los eventos a borrar
-            pmEmail: pmEmailInput.value, // El email para la nueva confirmación
-            events: [newEventData]      // El nuevo evento a crear
+            oldIds: eventIdsInput.value, 
+            pmEmail: pmEmailInput.value, 
+            events: [newEventData]      
         };
 
         // Enviamos la solicitud POST
         fetch(GAS_WEBAPP_URL, {
             method: 'POST',
-            mode: 'no-cors', // Como en el script original, para evitar problemas de CORS complejos
+            mode: 'no-cors', 
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(payload)
         })
         .then(() => {
-            // Como usamos 'no-cors', no podemos leer la respuesta.
-            // Asumimos que fue exitoso y mostramos un mensaje al usuario.
             showStatus('success', '¡Reserva modificada con éxito! Se ha enviado un nuevo correo de confirmación.');
             submitBtn.innerHTML = '¡Cambios Guardados!';
             submitBtn.classList.replace('bg-indigo-600', 'bg-emerald-600');
@@ -120,17 +127,17 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400">
                 <h3 class="font-bold">Error</h3>
                 <p>${message}</p>
-                <a href="indexv2.html" class="text-white underline mt-2 inline-block">Volver al portal</a>
+                <a href="index.html" class="text-white underline mt-2 inline-block">Volver al portal</a>
             </div>`;
     }
     
     function showStatus(type, htmlContent) {
         statusMessage.classList.remove('hidden');
-        statusMessage.className = 'rounded-lg p-4 text-sm font-medium text-center border'; // Reset classes
+        statusMessage.className = 'rounded-lg p-4 text-sm font-medium text-center border'; 
 
         if (type === 'success') {
             statusMessage.classList.add('bg-emerald-500/10', 'text-emerald-400', 'border-emerald-500/20');
-        } else { // 'error'
+        } else { 
             statusMessage.classList.add('bg-red-500/10', 'text-red-400', 'border-red-500/20');
         }
         statusMessage.innerHTML = htmlContent;

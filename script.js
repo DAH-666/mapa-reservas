@@ -265,9 +265,8 @@ form.addEventListener('submit', async function(e) {
         }
 
         // 2. REGLAS DE LÍMITE DE COMPAÑÍA (Por espacios físicos, no por sesiones)
-        // Calculamos cuántos espacios ocupará si aprobamos esta reserva
         let newStudios = new Set(occupiedStudios);
-        newStudios.add(studio); // Añadimos el estudio principal solicitado ahora
+        newStudios.add(studio); 
 
         let limit = Infinity;
         if (company === 'Rimas EU') limit = 2;
@@ -283,27 +282,52 @@ form.addEventListener('submit', async function(e) {
             exceptionReason = `La compañía ${company} tiene un límite de uso simultáneo de ${limitText} al día. (Actualmente ya tienen reservas hoy en: ${occupiedList}).`;
         }
 
+        // --- PREPARAMOS LOS DATOS DEL EVENTO AQUÍ ARRIBA PARA QUE ESTÉN DISPONIBLES ---
+        let baseDescription = `Reserva gestionada vía StudioFlow.\n\nArtista: ${artist}\nCompañía: ${company}`;
+        let eventsToCreate = [];
+
+        if (includesSuite) {
+            eventsToCreate.push({
+                summary: `${artist} - ${company}`,
+                location: studio, 
+                description: baseDescription + `\n\n🔗 NOTA: Esta sesión se realiza en conjunto con una reserva paralela en la Suite de producción.`,
+                start: { dateTime: startDateTime },
+                end: { dateTime: endDateTime }
+            });
+            eventsToCreate.push({
+                summary: `${artist} - ${company}`,
+                location: 'Suite de producción',
+                description: baseDescription + `\n\n🔗 NOTA: Esta sesión se realiza en conjunto con una reserva paralela en ${studio}.`,
+                start: { dateTime: startDateTime },
+                end: { dateTime: endDateTime }
+            });
+        } else {
+            eventsToCreate.push({
+                summary: `${artist} - ${company}`,
+                location: finalLocation,
+                description: baseDescription,
+                start: { dateTime: startDateTime },
+                end: { dateTime: endDateTime }
+            });
+        }
+        // -------------------------------------------------------------------------
+
         // 3. FLUJO DE EXCEPCIÓN
         if (exceptionReason) {
             submitBtn.innerHTML = `<span class="loader-spinner"></span> Enviando petición de aprobación...`;
             
             const payload = {
-                events: eventsToCreate,
+                events: eventsToCreate, 
                 pmEmail: currentUserInfo.email,
-                isOutsideHours: true, // Flag para el backend
-                exceptionReason: exceptionReason // Enviamos el motivo
+                isOutsideHours: true, 
+                exceptionReason: exceptionReason 
             };
 
             await fetch(GAS_WEBAPP_URL, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                mode: 'no-cors', // Añadido para evitar bloqueos de CORS
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify(payload)
-            })
-            .then(response => response.json())
-            .then(data => {
-                if(data.status !== 'approval_sent') {
-                    throw new Error(data.message || 'El servidor devolvió un error inesperado.');
-                }
             });
 
             showStatus('info', `
@@ -320,42 +344,6 @@ form.addEventListener('submit', async function(e) {
         // 4. FLUJO NORMAL: ENVIAR PETICIÓN A NUESTRO BACKEND (APPS SCRIPT)
         submitBtn.innerHTML = `<span class="loader-spinner"></span> Enviando solicitud al servidor...`;
 
-
-        let baseDescription = `Reserva gestionada vía StudioFlow.
-
-Artista: ${artist}
-Compañía: ${company}`;
-        let eventsToCreate = [];
-
-        if (includesSuite) {
-            eventsToCreate.push({
-                summary: `${artist} - ${company}`,
-                location: studio, 
-                description: baseDescription + `
-
-🔗 NOTA: Esta sesión se realiza en conjunto con una reserva paralela en la Suite de producción.`,
-                start: { dateTime: startDateTime },
-                end: { dateTime: endDateTime }
-            });
-            eventsToCreate.push({
-                summary: `${artist} - ${company}`,
-                location: 'Suite de producción',
-                description: baseDescription + `
-
-🔗 NOTA: Esta sesión se realiza en conjunto con una reserva paralela en ${studio}.`,
-                start: { dateTime: startDateTime },
-                end: { dateTime: endDateTime }
-            });
-        } else {
-            eventsToCreate.push({
-                summary: `${artist} - ${company}`,
-                location: finalLocation,
-                description: baseDescription,
-                start: { dateTime: startDateTime },
-                end: { dateTime: endDateTime }
-            });
-        }
-
         if (gapiAccessToken === "SIMULATED_TOKEN") {
             await new Promise(resolve => setTimeout(resolve, 1500));
             showStatus('success', `¡Reserva exitosa! (Simulación). Se habrían creado ${eventsToCreate.length} evento(s) mediante el servidor.`);
@@ -369,9 +357,7 @@ Compañía: ${company}`;
             await fetch(GAS_WEBAPP_URL, {
                 method: 'POST',
                 mode: 'no-cors',
-                headers: {
-                    'Content-Type': 'text/plain;charset=utf-8'
-                },
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify(payload)
             });
 

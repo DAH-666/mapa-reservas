@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Si por algún motivo el PM cambia el email manualmente, se actualizan las compañías
+    // Si el PM cambia el email manualmente (fallback), se actualizan las compañías
     pmEmailInput.addEventListener('change', (e) => {
         filterCompaniesByEmail(e.target.value);
     });
@@ -97,8 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             artistNameInput.value = data.artist || '';
             
-            // Verificamos si la compañía devuelta existe en la lista permitida; 
-            // si no, la añadimos para evitar que el selector se quede en blanco visualmente.
+            // Lógica para que se auto-seleccione la compañía correcta en el desplegable
             let optionExists = Array.from(companySelect.options).some(opt => opt.value === data.company);
             if (!optionExists && data.company) {
                 const opt = document.createElement('option');
@@ -130,7 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
         submitBtn.innerHTML = `<span class="loader-spinner"></span> Guardando cambios...`;
         
         const newEventData = {
-            summary: `${artistNameInput.value} - ${companySelect.value}`, // Resumen actualizado
+            summary: `${artistNameInput.value} - ${companySelect.value}`, // Usamos companySelect.value
             location: studioSelect.value,
             description: `(Reserva modificada desde StudioFlow)`,
             start: { dateTime: new Date(`${bookingDateInput.value}T${timeStartInput.value}`).toISOString() },

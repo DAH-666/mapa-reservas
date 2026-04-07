@@ -1,125 +1,127 @@
-// ==========================================
-// CONFIGURACIÓN
-// ==========================================
-const GOOGLE_CLIENT_ID = '521209969592-0c3dhj0gp8sjt00nt8v12i9p0rm1a607.apps.googleusercontent.com';
-const MAIN_STUDIO_EMAIL = 'booking.madrid@mapastudios.com';
+// =====================================================================
+// SCRIPT PARA EL PORTAL DE APROBACIONES DEL ESTUDIO
+// =====================================================================
+
 const GAS_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxdo2VYgXk9dnPg0G1A3tp1K-b2EdK-kJBsTBcK8Gm6LJCBxdZPb613N-Ee8vXq4bnQ1w/exec';
 
-// ==========================================
-// LÓGICA DE APROBACIÓN
-// ==========================================
-let tokenClient;
-let sessionToken = null;
+document.addEventListener('DOMContentLoaded', () => {
+    // Referencias al DOM
+    const loadingSection = document.getElementById('loadingSection');
+    const approvalForm = document.getElementById('approvalForm');
+    const statusMessage = document.getElementById('statusMessage');
+    const approveBtn = document.getElementById('approveBtn');
+    const rejectBtn = document.getElementById('rejectBtn');
+    const actionButtons = document.getElementById('actionButtons');
+    
+    // Inputs del formulario
+    const artistNameInput = document.getElementById('artistName');
+    const companySelect = document.getElementById('companySelect'); 
+    const studioSelect = document.getElementById('studioSelect');
+    const bookingDateInput = document.getElementById('bookingDate');
+    const timeStartInput = document.getElementById('timeStart');
+    const timeEndInput = document.getElementById('timeEnd');
+    const pmEmailInput = document.getElementById('pmEmail');
 
-window.onload = function () {
+    // Extraer el token de seguridad de la URL
     const urlParams = new URLSearchParams(window.location.search);
-    sessionToken = urlParams.get('token');
+    const token = urlParams.get('token');
 
-    if (!sessionToken) {
-        document.getElementById('loading').textContent = 'Error: No se proporcionó un token de sesión.';
+    if (!token) {
+        showError('No se ha encontrado el token de aprobación en la URL. El enlace puede estar roto o caducado.');
         return;
     }
 
-    tokenClient = google.accounts.oauth2.initTokenClient({
-        client_id: GOOGLE_CLIENT_ID,
-        scope: 'https://www.googleapis.com/auth/userinfo.email',
-        callback: async (tokenResponse) => {
-            if (tokenResponse && tokenResponse.access_token) {
-                await verifyUserAndFetchData(tokenResponse.access_token);
-            }
-        },
-    });
-
-    tokenClient.requestAccessToken({ prompt: 'consent' });
-};
-
-async function verifyUserAndFetchData(accessToken) {
-    try {
-        const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-            headers: { 'Authorization': `Bearer ${accessToken}` }
+    // --- 1. CARGAR DATOS PENDIENTES ---
+    fetch(`${GAS_WEBAPP_URL}?action=getSessionData&token=${token}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'error') throw new Error(data.message);
+            
+            // Rellenar formulario con los datos que pidió el PM
+            artistNameInput.value = data.artistName || '';
+            companySelect.value = data.company || ''; 
+            studioSelect.value = data.studio || '';
+            bookingDateInput.value = data.bookingDate || '';
+            timeStartInput.value = data.timeStart || '';
+            timeEndInput.value = data.timeEnd || '';
+            pmEmailInput.value = data.pmEmail || '';
+            
+            // Mostrar interfaz
+            loadingSection.classList.add('hidden');
+            approvalForm.classList.remove('hidden');
+        })
+        .catch(error => {
+            showError(`Aviso: ${error.message}`);
         });
-        const userInfo = await response.json();
 
-        if (userInfo.email.toLowerCase() !== MAIN_STUDIO_EMAIL) {
-            document.getElementById('loading').innerHTML = `
-                <div class="text-center text-red-400">
-                    <i class="fa-solid fa-lock text-3xl mb-3"></i>
-                    <p>Acceso denegado. Solo la cuenta ${MAIN_STUDIO_EMAIL} puede aprobar solicitudes.</p>
-                </div>`;
-            return;
-        }
+    // --- 2. GESTIONAR CLICS EN BOTONES ---
+    function sendStatusUpdate(statusAction) {
+        // Bloquear botones
+        approveBtn.disabled = true;
+        rejectBtn.disabled = true;
+        actionButtons.classList.add('opacity-50', 'pointer-events-none');
+        
+        // Empaquetar los datos por si el admin hizo alguna modificación en el formulario
+        const newEventData = {
+            summary: `${artistNameInput.value} - ${companySelect.value}`,
+            location: studioSelect.value,
+            description: `(Reserva gestionada y aprobada vía StudioFlow)`,
+            start: { dateTime: new Date(`${bookingDateInput.value}T${timeStartInput.value}`).toISOString() },
+            end: { dateTime: new Date(`${bookingDateInput.value}T${timeEndInput.value}`).toISOString() }
+        };
 
-        fetchSessionData();
-    } catch (error) {
-        console.error("Error de autenticación:", error);
-        document.getElementById('loading').textContent = 'Error al verificar la identidad del usuario.';
-    }
-}
+        const payload = {
+            action: 'updateSessionStatus',
+            token: token,
+            status: statusAction, // Puede ser 'approve' o 'reject'
+            pmEmail: pmEmailInput.value,
+            events: [newEventData] 
+        };
 
-async function fetchSessionData() {
-    try {
-        const response = await fetch(`${GAS_WEBAPP_URL}?action=getSessionData&token=${sessionToken}`);
-        const data = await response.json();
-
-        if (data.error) {
-            throw new Error(data.error);
-        }
-
-        document.getElementById('artistName').textContent = data.artistName;
-        document.getElementById('company').textContent = data.company;
-        document.getElementById('studio').textContent = data.studio;
-        document.getElementById('bookingDate').textContent = data.bookingDate;
-        document.getElementById('timeStart').textContent = data.timeStart;
-        document.getElementById('timeEnd').textContent = data.timeEnd;
-        document.getElementById('pmEmail').textContent = data.pmEmail;
-
-        document.getElementById('loading').classList.add('hidden');
-        document.getElementById('approvalCard').classList.remove('hidden');
-
-    } catch (error) {
-        document.getElementById('loading').textContent = `Error al cargar los datos: ${error.message}`;
-    }
-}
-
-document.getElementById('approveBtn').addEventListener('click', () => handleApproval('approve'));
-document.getElementById('disapproveBtn').addEventListener('click', () => handleApproval('disapprove'));
-document.getElementById('editBtn').addEventListener('click', () => {
-    // Redirigir a la página de modificación con el token
-    window.location.href = `modificar.html?token=${sessionToken}`;
-});
-
-
-async function handleApproval(status) {
-    const actionButtons = document.getElementById('actionButtons');
-    const statusMessage = document.getElementById('statusMessage');
-    
-    actionButtons.classList.add('hidden');
-    statusMessage.classList.remove('hidden');
-    statusMessage.textContent = 'Procesando...';
-
-    try {
-        const response = await fetch(GAS_WEBAPP_URL, {
+        fetch(GAS_WEBAPP_URL, {
             method: 'POST',
             mode: 'no-cors',
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify({
-                action: 'updateSessionStatus',
-                token: sessionToken,
-                status: status
-            })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(() => {
+            actionButtons.classList.add('hidden'); // Ocultar los botones de acción para que no pulse dos veces
+            if(statusAction === 'approve') {
+                showStatus('success', '¡Aprobada! La sesión se ha añadido al calendario y el PM ha sido notificado.');
+            } else {
+                showStatus('success', 'Rechazada. La solicitud se ha eliminado y se ha notificado al PM.');
+            }
+        })
+        .catch(error => {
+            showStatus('error', 'Error de conexión. Intenta de nuevo.');
+            actionButtons.classList.remove('opacity-50', 'pointer-events-none');
+            approveBtn.disabled = false;
+            rejectBtn.disabled = false;
         });
-        
-        if (status === 'approve') {
-            statusMessage.textContent = '¡Sesión aprobada y agendada!';
-            statusMessage.classList.add('bg-green-500/10', 'text-green-400', 'border-green-500/20');
-        } else {
-            statusMessage.textContent = 'La solicitud ha sido rechazada.';
-             statusMessage.classList.add('bg-red-500/10', 'text-red-400', 'border-red-500/20');
-        }
-
-    } catch (error) {
-        statusMessage.textContent = `Error: ${error.message}`;
-        statusMessage.classList.add('bg-red-500/10', 'text-red-400', 'border-red-500/20');
-        actionButtons.classList.remove('hidden');
     }
-}
+
+    // Asignar eventos a los botones
+    approveBtn.addEventListener('click', () => sendStatusUpdate('approve'));
+    rejectBtn.addEventListener('click', () => sendStatusUpdate('reject'));
+
+    // --- FUNCIONES DE AYUDA ---
+    function showError(message) {
+        loadingSection.innerHTML = `
+            <div class="p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg text-yellow-500">
+                <i class="fa-solid fa-triangle-exclamation mb-2 text-2xl"></i>
+                <p>${message}</p>
+            </div>`;
+    }
+    
+    function showStatus(type, htmlContent) {
+        statusMessage.classList.remove('hidden');
+        statusMessage.className = 'rounded-lg p-4 text-sm font-medium text-center border'; 
+        if (type === 'success') {
+            statusMessage.classList.add('bg-emerald-500/10', 'text-emerald-400', 'border-emerald-500/20');
+            statusMessage.innerHTML = `<i class="fa-solid fa-check-circle mr-2"></i> ${htmlContent}`;
+        } else { 
+            statusMessage.classList.add('bg-red-500/10', 'text-red-400', 'border-red-500/20');
+            statusMessage.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-2"></i> ${htmlContent}`;
+        }
+    }
+});

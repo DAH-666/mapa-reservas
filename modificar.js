@@ -14,17 +14,55 @@ document.addEventListener('DOMContentLoaded', () => {
     // Inputs del formulario
     const eventIdsInput = document.getElementById('eventIds');
     const artistNameInput = document.getElementById('artistName');
-    const companyNameInput = document.getElementById('companyName');
+    const companySelect = document.getElementById('companySelect'); 
     const pmEmailInput = document.getElementById('pmEmail');
-    const pmEmailContainer = document.getElementById('pmEmailContainer'); // NUEVO
+    const pmEmailContainer = document.getElementById('pmEmailContainer');
     const studioSelect = document.getElementById('studioSelect');
     const bookingDateInput = document.getElementById('bookingDate');
     const timeStartInput = document.getElementById('timeStart');
     const timeEndInput = document.getElementById('timeEnd');
 
+    // --- 0. FUNCIÓN PARA CARGAR COMPAÑÍAS PERMITIDAS ---
+    function filterCompaniesByEmail(email) {
+        companySelect.innerHTML = '<option value="" disabled selected>Selecciona una compañía...</option>';
+
+        const allCompanies = [
+            { name: 'Rimas PR', group: '@rimasmusic' },
+            { name: 'Rimas EU', group: '@rimasmusic' },
+            { name: 'Rimas MX', group: '@rimasmusic' },
+            { name: 'Sonar', group: '@rimasmusic' },
+            { name: 'Melodías Internacional', group: '@melodias' },
+            { name: 'Melodías España', group: '@melodias' },
+            { name: 'Dale Play', group: 'all' }
+        ];
+
+        let allowed = [];
+        const userEmail = (email || '').toLowerCase();
+        
+        if (userEmail.includes('@mapastudios')) {
+            allowed = allCompanies; 
+        } else if (userEmail.includes('@rimasmusic')) {
+            allowed = allCompanies.filter(c => c.group === '@rimasmusic');
+        } else if (userEmail.includes('@melodias')) {
+            allowed = allCompanies.filter(c => c.group === '@melodias');
+        } else {
+            allowed = allCompanies; 
+        }
+
+        allowed.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c.name;
+            opt.textContent = c.name;
+            companySelect.appendChild(opt);
+        });
+    }
+
+    // Si por algún motivo el PM cambia el email manualmente, se actualizan las compañías
+    pmEmailInput.addEventListener('change', (e) => {
+        filterCompaniesByEmail(e.target.value);
+    });
+
     // --- 1. CARGAR DATOS DEL EVENTO ---
-    
-    // Obtener los IDs y el correo de la URL
     const urlParams = new URLSearchParams(window.location.search);
     const idsToModify = urlParams.get('ids') || urlParams.get('modify');
     const pmEmailParam = urlParams.get('pm');
@@ -34,22 +72,22 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-    // Autocompletar el email si viene en la URL
+    let currentEmail = '';
     if (pmEmailParam) {
         pmEmailInput.value = pmEmailParam;
+        currentEmail = pmEmailParam;
     } else {
-        // Fallback por si el PM usa el enlace de un correo antiguo sin el parámetro email
         pmEmailContainer.classList.remove('hidden');
         pmEmailInput.required = true;
     }
 
-    // Guardamos los IDs en el campo oculto para usarlos al enviar el formulario
+    // Generamos las opciones del desplegable ANTES de pedir los datos al servidor
+    filterCompaniesByEmail(currentEmail);
+
     eventIdsInput.value = idsToModify;
 
-    // Construimos la URL para pedir los detalles al backend
     const fetchUrl = `${GAS_WEBAPP_URL}?action=getEventDetails&ids=${idsToModify}`;
     
-    // Hacemos la llamada al backend para obtener los datos
     fetch(fetchUrl)
         .then(response => response.json())
         .then(data => {
@@ -57,15 +95,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error(data.message);
             }
             
-            // Rellenamos el formulario con los datos recibidos
             artistNameInput.value = data.artist || '';
-            companyNameInput.value = data.company || ''; 
+            
+            // Verificamos si la compañía devuelta existe en la lista permitida; 
+            // si no, la añadimos para evitar que el selector se quede en blanco visualmente.
+            let optionExists = Array.from(companySelect.options).some(opt => opt.value === data.company);
+            if (!optionExists && data.company) {
+                const opt = document.createElement('option');
+                opt.value = data.company;
+                opt.textContent = data.company;
+                companySelect.appendChild(opt);
+            }
+            companySelect.value = data.company || ''; 
+            
             studioSelect.value = data.location || '';
             bookingDateInput.value = data.date || '';
             timeStartInput.value = data.timeStart || '';
             timeEndInput.value = data.timeEnd || '';
             
-            // Ocultamos la sección de carga y mostramos el formulario
             loadingSection.classList.add('hidden');
             modificationForm.classList.remove('hidden');
         })
@@ -82,23 +129,20 @@ document.addEventListener('DOMContentLoaded', () => {
         submitBtn.disabled = true;
         submitBtn.innerHTML = `<span class="loader-spinner"></span> Guardando cambios...`;
         
-        // Creamos el objeto del evento con los datos actualizados del formulario
         const newEventData = {
-            summary: `${artistNameInput.value} - ${companyNameInput.value}`,
+            summary: `${artistNameInput.value} - ${companySelect.value}`, // Resumen actualizado
             location: studioSelect.value,
             description: `(Reserva modificada desde StudioFlow)`,
             start: { dateTime: new Date(`${bookingDateInput.value}T${timeStartInput.value}`).toISOString() },
             end: { dateTime: new Date(`${bookingDateInput.value}T${timeEndInput.value}`).toISOString() }
         };
 
-        // Construimos el payload que espera la función doPost del backend
         const payload = {
             oldIds: eventIdsInput.value, 
             pmEmail: pmEmailInput.value, 
             events: [newEventData]      
         };
 
-        // Enviamos la solicitud POST
         fetch(GAS_WEBAPP_URL, {
             method: 'POST',
             mode: 'no-cors', 
@@ -121,7 +165,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- FUNCIONES DE AYUDA ---
-
     function showError(message) {
         loadingSection.innerHTML = `
             <div class="p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400">

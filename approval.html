@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aprobar Solicitud</title>
+    <title>Aprobar Reserva</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -11,41 +11,88 @@
 </head>
 <body class="min-h-screen flex items-center justify-center p-4">
 
-    <div id="approvalCard" class="w-full max-w-lg bg-slate-800 rounded-2xl shadow-2xl border border-slate-700 overflow-hidden relative hidden">
+    <div class="w-full max-w-lg bg-slate-800 rounded-2xl shadow-2xl border border-slate-700 overflow-hidden relative">
         <div class="bg-slate-900 px-8 py-6 border-b border-slate-700 text-center">
-            <h1 class="text-2xl font-bold text-white tracking-tight">Aprobar Solicitud de Sesión</h1>
-            <p class="text-sm text-slate-400 mt-1">La siguiente sesión requiere aprobación por estar fuera de horario.</p>
+            <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-yellow-500/10 mb-4">
+                <i class="fa-solid fa-clipboard-check text-yellow-500 text-2xl"></i>
+            </div>
+            <h1 class="text-2xl font-bold text-white tracking-tight">Revisión de Reserva</h1>
+            <p class="text-sm text-slate-400 mt-1">Petición excepcional por límite de reglas o fuera de horario</p>
         </div>
 
-        <div class="p-8 space-y-4">
-            <div id="sessionDetails" class="bg-slate-900/50 p-6 rounded-xl border border-slate-700/50">
-                <h3 class="text-lg font-medium text-white mb-4">Detalles de la Solicitud</h3>
-                <div class="space-y-2 text-sm text-slate-300">
-                    <p><strong>Artista:</strong> <span id="artistName"></span></p>
-                    <p><strong>Compañía:</strong> <span id="company"></span></p>
-                    <p><strong>Estudio:</strong> <span id="studio"></span></p>
-                    <p><strong>Fecha:</strong> <span id="bookingDate"></span></p>
-                    <p><strong>Horario:</strong> <span id="timeStart"></span> - <span id="timeEnd"></span></p>
-                    <p><strong>Solicitado por:</strong> <span id="pmEmail"></span></p>
+        <div id="loadingSection" class="p-8 text-center">
+            <div class="flex items-center justify-center gap-3">
+                <div class="loader-spinner"></div>
+                <span class="text-slate-400">Cargando detalles de la solicitud...</span>
+            </div>
+        </div>
+
+        <form id="approvalForm" class="p-8 space-y-6 hidden">
+            <input type="hidden" id="pmEmail" name="pmEmail">
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-1">Nombre del Artista(s)</label>
+                    <input type="text" id="artistName" required
+                        class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition-colors">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-1">Compañía</label>
+                    <input type="text" id="companySelect" required
+                        class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition-colors">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-1">Estudio Requerido</label>
+                    <div class="relative">
+                        <select id="studioSelect" required
+                            class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white appearance-none focus:outline-none focus:border-indigo-500 transition-colors">
+                            <option value="Control 1">Control 1</option>
+                            <option value="Control 2 + Sala B">Control 2 + Sala B</option>
+                            <option value="Control 3">Control 3</option>
+                            <option value="Control 5">Control 5</option>
+                            <option value="Control 6">Control 6</option>
+                            <option value="Suite de producción">Suite de producción</option>
+                        </select>
+                        <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-500 pointer-events-none"></i>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-1">Día</label>
+                        <input type="date" id="bookingDate" required
+                            class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition-colors">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-1">Hora Inicio</label>
+                        <input type="time" id="timeStart" required
+                            class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition-colors">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-1">Hora Fin</label>
+                        <input type="time" id="timeEnd" required
+                            class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition-colors">
+                    </div>
                 </div>
             </div>
 
-            <div id="actionButtons" class="flex justify-between space-x-4">
-                <button id="approveBtn" class="w-full bg-green-600 hover:bg-green-500 text-white font-semibold rounded-lg px-4 py-3 shadow transition-colors">
-                    <i class="fa-solid fa-check"></i> Aprobar
+            <div id="statusMessage" class="hidden rounded-lg p-4 text-sm font-medium text-center border"></div>
+
+            <div class="flex gap-4" id="actionButtons">
+                <button type="button" id="rejectBtn" 
+                    class="w-1/3 bg-red-600 hover:bg-red-500 text-white font-semibold rounded-lg px-4 py-3.5 shadow-lg shadow-red-500/30 transition-all transform active:scale-95">
+                    <i class="fa-solid fa-xmark mr-1"></i> Rechazar
                 </button>
-                <button id="disapproveBtn" class="w-full bg-red-600 hover:bg-red-500 text-white font-semibold rounded-lg px-4 py-3 shadow transition-colors">
-                    <i class="fa-solid fa-times"></i> Rechazar
-                </button>
-                <button id="editBtn" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-lg px-4 py-3 shadow transition-colors">
-                    <i class="fa-solid fa-pencil"></i> Editar
+                <button type="button" id="approveBtn" 
+                    class="w-2/3 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-lg px-4 py-3.5 shadow-lg shadow-emerald-500/30 transition-all transform active:scale-95">
+                    <i class="fa-solid fa-check mr-1"></i> Aprobar Reserva
                 </button>
             </div>
-             <div id="statusMessage" class="hidden rounded-lg p-4 text-sm font-medium text-center border"></div>
-        </div>
+        </form>
     </div>
-    <div id="loading" class="text-white">Cargando...</div>
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
+
     <script src="approval.js"></script>
 </body>
 </html>

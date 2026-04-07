@@ -57,7 +57,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Si el PM cambia el email manualmente (fallback), se actualizan las compañías
     pmEmailInput.addEventListener('change', (e) => {
         filterCompaniesByEmail(e.target.value);
     });
@@ -68,7 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const pmEmailParam = urlParams.get('pm');
 
     if (!idsToModify) {
-        showError('No se ha especificado un ID de evento para modificar. Por favor, accede a esta página desde el enlace en el correo de confirmación.');
+        showError('No se ha especificado un ID de evento para modificar.');
         return;
     }
 
@@ -81,9 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
         pmEmailInput.required = true;
     }
 
-    // Generamos las opciones del desplegable ANTES de pedir los datos al servidor
     filterCompaniesByEmail(currentEmail);
-
     eventIdsInput.value = idsToModify;
 
     const fetchUrl = `${GAS_WEBAPP_URL}?action=getEventDetails&ids=${idsToModify}`;
@@ -91,13 +88,10 @@ document.addEventListener('DOMContentLoaded', () => {
     fetch(fetchUrl)
         .then(response => response.json())
         .then(data => {
-            if (data.status === 'error') {
-                throw new Error(data.message);
-            }
+            if (data.status === 'error') throw new Error(data.message);
             
             artistNameInput.value = data.artist || '';
             
-            // Lógica para que se auto-seleccione la compañía correcta en el desplegable
             let optionExists = Array.from(companySelect.options).some(opt => opt.value === data.company);
             if (!optionExists && data.company) {
                 const opt = document.createElement('option');
@@ -116,24 +110,31 @@ document.addEventListener('DOMContentLoaded', () => {
             modificationForm.classList.remove('hidden');
         })
         .catch(error => {
-            console.error('Error al cargar los datos del evento:', error);
-            showError(`No se pudieron cargar los detalles de la reserva. Error: ${error.message}`);
+            showError(`No se pudieron cargar los detalles: ${error.message}`);
         });
 
     // --- 2. MANEJAR EL ENVÍO DEL FORMULARIO ---
-
     modificationForm.addEventListener('submit', function(e) {
         e.preventDefault();
 
         submitBtn.disabled = true;
         submitBtn.innerHTML = `<span class="loader-spinner"></span> Guardando cambios...`;
         
+        // LÓGICA INTELIGENTE DE MEDIANOCHE
+        const startDateTimeObj = new Date(`${bookingDateInput.value}T${timeStartInput.value}:00`);
+        const endDateTimeObj = new Date(`${bookingDateInput.value}T${timeEndInput.value}:00`);
+        
+        // Si la hora de fin es menor a la de inicio, le sumamos 1 día automáticamente
+        if (timeEndInput.value < timeStartInput.value) {
+            endDateTimeObj.setDate(endDateTimeObj.getDate() + 1);
+        }
+
         const newEventData = {
-            summary: `${artistNameInput.value} - ${companySelect.value}`, // Usamos companySelect.value
+            summary: `${artistNameInput.value} - ${companySelect.value}`,
             location: studioSelect.value,
             description: `(Reserva modificada desde StudioFlow)`,
-            start: { dateTime: new Date(`${bookingDateInput.value}T${timeStartInput.value}`).toISOString() },
-            end: { dateTime: new Date(`${bookingDateInput.value}T${timeEndInput.value}`).toISOString() }
+            start: { dateTime: startDateTimeObj.toISOString() },
+            end: { dateTime: endDateTimeObj.toISOString() }
         };
 
         const payload = {
@@ -145,9 +146,7 @@ document.addEventListener('DOMContentLoaded', () => {
         fetch(GAS_WEBAPP_URL, {
             method: 'POST',
             mode: 'no-cors', 
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         })
         .then(() => {
@@ -156,8 +155,7 @@ document.addEventListener('DOMContentLoaded', () => {
             submitBtn.classList.replace('bg-indigo-600', 'bg-emerald-600');
         })
         .catch(error => {
-            console.error('Error al modificar la reserva:', error);
-            showStatus('error', `Ocurrió un error al guardar los cambios: ${error.message}`);
+            showStatus('error', `Ocurrió un error al guardar los cambios.`);
             submitBtn.disabled = false;
             submitBtn.innerHTML = 'Guardar Cambios';
         });
@@ -176,7 +174,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function showStatus(type, htmlContent) {
         statusMessage.classList.remove('hidden');
         statusMessage.className = 'rounded-lg p-4 text-sm font-medium text-center border'; 
-
         if (type === 'success') {
             statusMessage.classList.add('bg-emerald-500/10', 'text-emerald-400', 'border-emerald-500/20');
         } else { 

@@ -5,17 +5,7 @@ const GOOGLE_CLIENT_ID = '521209969592-0c3dhj0gp8sjt00nt8v12i9p0rm1a607.apps.goo
 const ALLOWED_DOMAINS = ['@mapastudios', '@rimasmusic', '@melodias']; 
 
 const CENTRAL_CALENDAR_ID = 'booking.madrid@mapastudios.com'; 
-const GAS_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxsSxh1HC5jHhbIPxQZYohH-vPD0c0XrW0IpG3otaTczcUkGLzeeSB8FXJnpDIPROafmg/exec'; 
-
-// --- DETECTAR MODO MODIFICACIÓN EN LA URL ---
-const urlParams = new URLSearchParams(window.location.search);
-const modifyIds = urlParams.get('modify');
-
-if (modifyIds) {
-    document.getElementById('modificationAlert').classList.remove('hidden');
-    document.getElementById('mainTitle').textContent = "Modificar Sesión";
-    document.getElementById('btnText').textContent = "Confirmar Cambios";
-}
+const GAS_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxdo2VYgXk9dnPg0G1A3tp1K-b2EdK-kJBsTBcK8Gm6LJCBxdZPb613N-Ee8vXq4bnQ1w/exec'; 
 
 // ==========================================
 // Lógica de UI e Inicialización
@@ -35,8 +25,6 @@ const userInitialDisplay = document.getElementById('userInitial');
 const loginError = document.getElementById('loginError');
 
 window.onload = function () {
-    if(typeof google === 'undefined') return; // En caso de que falle la carga de GSI
-
     tokenClient = google.accounts.oauth2.initTokenClient({
         client_id: GOOGLE_CLIENT_ID,
         scope: 'https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile',
@@ -79,13 +67,13 @@ async function validateUser(token) {
 
 document.getElementById('googleLoginBtn').addEventListener('click', () => {
     if (GOOGLE_CLIENT_ID === 'TU_CLIENT_ID_AQUI.apps.googleusercontent.com') {
-        alert("Modo Simulación: Como no has ingresado un GOOGLE_CLIENT_ID real, pasaremos directamente al formulario.");
+        alert("Modo Simulación: Pasaremos directamente al formulario.");
         gapiAccessToken = "SIMULATED_TOKEN";
         currentUserInfo = { name: "Manager", email: "manager@mapastudios.com", picture: "" };
         showBookingForm(currentUserInfo);
         return;
     }
-    if(tokenClient) tokenClient.requestAccessToken({prompt: 'consent'});
+    tokenClient.requestAccessToken({prompt: 'consent'});
 });
 
 document.getElementById('logoutBtn').addEventListener('click', () => {
@@ -103,12 +91,8 @@ function showBookingForm(userInfo) {
     loginSection.classList.add('hidden');
     bookingForm.classList.remove('hidden');
     userEmailDisplay.textContent = userInfo.email; 
-    if (userInfo.picture) {
-        userInitialDisplay.innerHTML = `<img src="${userInfo.picture}" class="w-full h-full rounded-full border-2 border-indigo-400" alt="Perfil">`;
-    } else {
-        userInitialDisplay.innerHTML = `<span class="text-lg">${userInfo.name ? userInfo.name.charAt(0) : '<i class="fa-solid fa-user"></i>'}</span>`;
-    }
     
+    // Generar las opciones del desplegable según el correo del usuario
     filterCompaniesByEmail(userInfo.email);
 }
 
@@ -214,11 +198,10 @@ form.addEventListener('submit', async function(e) {
                     errorDetails = errData.error.message;
                 } catch(e) {}
                 
-                throw new Error(`<b>Google bloqueó el acceso (Error ${calResponse.status}):</b> ${errorDetails}<br><br>
+                throw new Error(`<b>Google bloqueó el acceso:</b> ${errorDetails}<br><br>
                 <b>Soluciones:</b><br>
-                1. Sube arriba del todo, haz clic en <b>"Salir"</b> y vuelve a iniciar sesión. Esto refrescará tus permisos.<br>
-                2. Comprueba que el PM tenga el calendario añadido en su lista (Suscribirse).<br>
-                3. Comprueba que el ID del calendario (${CENTRAL_CALENDAR_ID}) sea el correcto.`);
+                1. Haz clic en <b>"Desconectar"</b> y vuelve a iniciar sesión.<br>
+                2. Comprueba que el calendario esté en tu cuenta.`);
             }
 
             const calData = await calResponse.json();
@@ -230,15 +213,9 @@ form.addEventListener('submit', async function(e) {
             for (const evt of (calData.items || [])) {
                 if (!evt.start || !evt.end || evt.status === 'cancelled') continue;
                 
-                // --- LA CLAVE PARA MODIFICAR: Ignoramos el evento viejo en la comprobación ---
-                if (modifyIds && modifyIds.includes(evt.id)) {
-                    continue; 
-                }
-
                 const eStart = new Date(evt.start.dateTime || evt.start.date).getTime();
                 const eEnd = new Date(evt.end.dateTime || evt.end.date).getTime();
                 
-                // 1.1 Comprobar Solapamiento Físico
                 if (rStart < eEnd && eStart < rEnd) {
                     const evtLoc = evt.location || "";
                     let locationConflict = false;
@@ -256,7 +233,6 @@ form.addEventListener('submit', async function(e) {
                     }
                 }
 
-                // 1.2 Extraer todos los espacios que la compañía está usando HOY (Sin importar la hora)
                 if (evt.summary && evt.summary.includes(company)) {
                     let loc = evt.location || "";
                     if (loc) {
@@ -272,13 +248,13 @@ form.addEventListener('submit', async function(e) {
                 const cStart = new Date(conflictingEvent.start.dateTime || conflictingEvent.start.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                 const cEnd = new Date(conflictingEvent.end.dateTime || conflictingEvent.end.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                 
-                showStatus('error', `¡El espacio ya está reservado! Está ocupado desde las <b>${cStart}</b> hasta las <b>${cEnd}</b>. Por favor, selecciona un tramo libre o cambia de estudio.`);
+                showStatus('error', `¡El espacio ya está reservado! Está ocupado desde las <b>${cStart}</b> hasta las <b>${cEnd}</b>.`);
                 restoreButton();
                 return; 
             }
         }
 
-        // 2. REGLAS DE LÍMITE DE COMPAÑÍA
+        // 2. REGLAS DE LÍMITE DE COMPAÑÍA 
         let newStudios = new Set(occupiedStudios);
         newStudios.add(studio); 
 
@@ -293,7 +269,36 @@ form.addEventListener('submit', async function(e) {
         } else if (newStudios.size > limit) {
             let occupiedList = Array.from(occupiedStudios).join(', ') || 'Ninguno';
             let limitText = limit === 1 ? "1 único control" : `${limit} controles distintos`;
-            exceptionReason = `La compañía ${company} tiene un límite de uso simultáneo de ${limitText} al día. (Actualmente ya tienen reservas hoy en: ${occupiedList}).`;
+            exceptionReason = `La compañía ${company} tiene un límite de uso simultáneo de ${limitText} al día. (En uso: ${occupiedList}).`;
+        }
+
+        // --- PREPARAMOS LOS DATOS DEL EVENTO ---
+        let baseDescription = `Reserva gestionada vía StudioFlow por ${currentUserInfo.email}.\n\nArtista: ${artist}\nCompañía: ${company}`;
+        let eventsToCreate = [];
+
+        if (includesSuite) {
+            eventsToCreate.push({
+                summary: `${artist} - ${company}`,
+                location: studio, 
+                description: baseDescription + `\n\n🔗 NOTA: Esta sesión se realiza en conjunto con una reserva paralela en la Suite de producción.`,
+                start: { dateTime: startDateTime },
+                end: { dateTime: endDateTime }
+            });
+            eventsToCreate.push({
+                summary: `${artist} - ${company}`,
+                location: 'Suite de producción',
+                description: baseDescription + `\n\n🔗 NOTA: Esta sesión se realiza en conjunto con una reserva paralela en ${studio}.`,
+                start: { dateTime: startDateTime },
+                end: { dateTime: endDateTime }
+            });
+        } else {
+            eventsToCreate.push({
+                summary: `${artist} - ${company}`,
+                location: finalLocation,
+                description: baseDescription,
+                start: { dateTime: startDateTime },
+                end: { dateTime: endDateTime }
+            });
         }
 
         // 3. FLUJO DE EXCEPCIÓN
@@ -301,9 +306,10 @@ form.addEventListener('submit', async function(e) {
             submitBtn.innerHTML = `<span class="loader-spinner"></span> Enviando petición de aprobación...`;
             
             const payload = {
-                events: eventsToCreate,
+                events: eventsToCreate, 
                 pmEmail: currentUserInfo.email,
-                oldIds: modifyIds // Pasamos los IDs antiguos para que el servidor los borre
+                isOutsideHours: true, 
+                exceptionReason: exceptionReason 
             };
 
             await fetch(GAS_WEBAPP_URL, {
@@ -315,19 +321,39 @@ form.addEventListener('submit', async function(e) {
 
             showStatus('info', `
                 <div class="flex flex-col items-center text-center p-2">
-                    <div class="flex items-center text-lg font-bold mb-2 text-yellow-600"><i class="fa-solid fa-envelope-open-text mr-2"></i> Petición Enviada a Aprobación</div>
+                    <div class="flex items-center text-lg font-bold mb-2 text-yellow-600"><i class="fa-solid fa-envelope-open-text mr-2"></i> Petición Enviada</div>
                     <p class="text-sm mb-4 text-yellow-700/90">${exceptionReason}</p>
-                    <p class="text-xs text-slate-500">Recibirás una confirmación por correo una vez que el equipo de booking revise tu solicitud. El evento no se ha creado en el calendario todavía.</p>
+                    <p class="text-xs text-slate-500 font-medium">Recibirás una confirmación por correo una vez que el equipo de booking revise tu solicitud. El evento no se ha creado todavía.</p>
                 </div>
             `);
             restoreButton();
             return;
         }
 
-        // 4. FLUJO NORMAL: ENVIAR PETICIÓN A NUESTRO BACKEND (APPS SCRIPT)
+        // 4. FLUJO NORMAL
         submitBtn.innerHTML = `<span class="loader-spinner"></span> Enviando solicitud al servidor...`;
 
         if (gapiAccessToken === "SIMULATED_TOKEN") {
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            showStatus('success', `¡Reserva exitosa! (Simulación). Se habrían creado ${eventsToCreate.length} evento(s) mediante el servidor.`);
+            form.reset();
+        } else {
+            const payload = {
+                events: eventsToCreate,
+                pmEmail: currentUserInfo.email 
+            };
+
+            await fetch(GAS_WEBAPP_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(payload)
+            });
+
+            showStatus('success', `¡Reserva Confirmada y Procesada! Revisa el calendario de tu correo (${currentUserInfo.email}) en los próximos minutos.`);
+            form.reset();
+            extraRoomContainer.classList.add('hidden');
+            document.getElementById('extraRoomSelect').removeAttribute('required');
         }
 
     } catch (error) {
@@ -340,8 +366,7 @@ form.addEventListener('submit', async function(e) {
 
 function restoreButton() {
     submitBtn.disabled = false;
-    const btnText = modifyIds ? "Confirmar Cambios" : "Procesar Solicitud";
-    submitBtn.innerHTML = `<i class="fa-solid fa-power-off" id="btnIcon"></i> <span id="btnText">${btnText}</span>`;
+    submitBtn.innerHTML = `<i class="fa-solid fa-power-off" id="btnIcon"></i> <span id="btnText">Procesar Solicitud</span>`;
 }
 
 function showStatus(type, htmlContent) {

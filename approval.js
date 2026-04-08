@@ -53,7 +53,6 @@ document.addEventListener('DOMContentLoaded', () => {
         rejectBtn.disabled = true;
         actionButtons.classList.add('opacity-50', 'pointer-events-none');
 
-        // LÓGICA INTELIGENTE DE MEDIANOCHE
         const startDateTimeObj = new Date(`${bookingDateInput.value}T${timeStartInput.value}:00`);
         const endDateTimeObj = new Date(`${bookingDateInput.value}T${timeEndInput.value}:00`);
         
@@ -61,10 +60,11 @@ document.addEventListener('DOMContentLoaded', () => {
             endDateTimeObj.setDate(endDateTimeObj.getDate() + 1);
         }
         
+        // --- NOMBRE CEREBRO EN LA APROBACIÓN ---
         const newEventData = {
             summary: `${artistNameInput.value} - ${companySelect.value}`,
             location: studioSelect.value,
-            description: `(Reserva solicitada por ${pmEmailInput.value} y aprobada vía StudioFlow)`,
+            description: `(Reserva solicitada por ${pmEmailInput.value} y aprobada vía Cerebro)`,
             start: { dateTime: startDateTimeObj.toISOString() },
             end: { dateTime: endDateTimeObj.toISOString() }
         };

@@ -65,16 +65,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const startDateTimeObj = new Date(`${bookingDateInput.value}T${timeStartInput.value}:00`);
         const endDateTimeObj = new Date(`${bookingDateInput.value}T${timeEndInput.value}:00`);
         
-        // Si la hora de fin es menor a la de inicio, le sumamos 1 día automáticamente
         if (timeEndInput.value < timeStartInput.value) {
             endDateTimeObj.setDate(endDateTimeObj.getDate() + 1);
         }
         
-        // Empaquetar los datos
         const newEventData = {
             summary: `${artistNameInput.value} - ${companySelect.value}`,
             location: studioSelect.value,
-            description: `(Reserva gestionada y aprobada vía StudioFlow)`,
+            // AQUÍ AÑADIMOS EL CORREO A LA DESCRIPCIÓN
+            description: `(Reserva solicitada por ${pmEmailInput.value} y aprobada vía StudioFlow)`,
             start: { dateTime: startDateTimeObj.toISOString() },
             end: { dateTime: endDateTimeObj.toISOString() }
         };

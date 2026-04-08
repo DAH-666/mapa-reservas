@@ -264,7 +264,7 @@ form.addEventListener('submit', async function(e) {
         let exceptionReason = null;
 
         if (isOutsideHours) {
-            exceptionReason = "Se requiere horario nocturno / fuera de horario operativo (10:00 a 22:00).";
+            exceptionReason = "Se requiere horario especial (fuera de horario operativo L-V de 10:00 a 22:00 o en fin de semana).";
         } else if (newStudios.size > limit) {
             let occupiedList = Array.from(occupiedStudios).join(', ') || 'Ninguno';
             let limitText = limit === 1 ? "1 único control" : `${limit} controles distintos`;
@@ -405,11 +405,24 @@ const extendedHoursAlert = document.getElementById('extendedHoursAlert');
 function checkExtendedHours() {
     const start = timeStartInput.value;
     const end = timeEndInput.value;
+    const dateVal = document.getElementById('bookingDate').value;
     let isOutsideHours = false;
 
+    // 1. Comprobación de horario
     if (start && start < "10:00") isOutsideHours = true;
     if (end && (end > "22:00" || (start && end < start))) isOutsideHours = true;
 
+    // 2. Comprobación de fin de semana (Sábados y Domingos)
+    if (dateVal) {
+        const [y, m, d] = dateVal.split('-');
+        const dateObj = new Date(y, m - 1, d);
+        const day = dateObj.getDay();
+        if (day === 0 || day === 6) { // 0 es Domingo, 6 es Sábado
+            isOutsideHours = true;
+        }
+    }
+
+    // Mostrar u ocultar la alerta en la interfaz
     if (isOutsideHours) {
         extendedHoursAlert.classList.remove('hidden');
     } else {
@@ -419,3 +432,4 @@ function checkExtendedHours() {
 
 timeStartInput.addEventListener('change', checkExtendedHours);
 timeEndInput.addEventListener('change', checkExtendedHours);
+document.getElementById('bookingDate').addEventListener('change', checkExtendedHours);

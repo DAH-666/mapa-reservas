@@ -1,135 +1,98 @@
-// =====================================================================
-// SCRIPT PARA EL PORTAL DE APROBACIONES DEL ESTUDIO
-// =====================================================================
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudioFlow - Aprobar Reserva</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 relative">
 
-const GAS_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxdo2VYgXk9dnPg0G1A3tp1K-b2EdK-kJBsTBcK8Gm6LJCBxdZPb613N-Ee8vXq4bnQ1w/exec';
+    <div class="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_50%,_rgba(0,0,0,0.03)_100%)] z-0"></div>
 
-document.addEventListener('DOMContentLoaded', () => {
-    // Referencias al DOM
-    const loadingSection = document.getElementById('loadingSection');
-    const approvalForm = document.getElementById('approvalForm');
-    const statusMessage = document.getElementById('statusMessage');
-    const approveBtn = document.getElementById('approveBtn');
-    const rejectBtn = document.getElementById('rejectBtn');
-    const actionButtons = document.getElementById('actionButtons');
-    
-    // Inputs del formulario
-    const artistNameInput = document.getElementById('artistName');
-    const companySelect = document.getElementById('companySelect'); 
-    const studioSelect = document.getElementById('studioSelect');
-    const bookingDateInput = document.getElementById('bookingDate');
-    const timeStartInput = document.getElementById('timeStart');
-    const timeEndInput = document.getElementById('timeEnd');
-    const pmEmailInput = document.getElementById('pmEmail');
-
-    // Extraer el token de seguridad de la URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const token = urlParams.get('token');
-
-    if (!token) {
-        showError('No se ha encontrado el token de aprobación en la URL. El enlace puede estar roto o caducado.');
-        return;
-    }
-
-    // --- 1. CARGAR DATOS PENDIENTES ---
-    fetch(`${GAS_WEBAPP_URL}?action=getSessionData&token=${token}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'error') throw new Error(data.message);
-            
-            // Rellenar formulario con los datos que pidió el PM
-            artistNameInput.value = data.artistName || '';
-            companySelect.value = data.company || ''; 
-            studioSelect.value = data.studio || '';
-            bookingDateInput.value = data.bookingDate || '';
-            timeStartInput.value = data.timeStart || '';
-            timeEndInput.value = data.timeEnd || '';
-            pmEmailInput.value = data.pmEmail || '';
-            
-            // Mostrar interfaz
-            loadingSection.classList.add('hidden');
-            approvalForm.classList.remove('hidden');
-        })
-        .catch(error => {
-            showError(`Aviso: ${error.message}`);
-        });
-
-    // --- 2. GESTIONAR CLICS EN BOTONES ---
-    function sendStatusUpdate(statusAction) {
-        // Bloquear botones
-        approveBtn.disabled = true;
-        rejectBtn.disabled = true;
-        actionButtons.classList.add('opacity-50', 'pointer-events-none');
-
-        // LÓGICA INTELIGENTE DE MEDIANOCHE
-        const startDateTimeObj = new Date(`${bookingDateInput.value}T${timeStartInput.value}:00`);
-        const endDateTimeObj = new Date(`${bookingDateInput.value}T${timeEndInput.value}:00`);
+    <div class="w-full max-w-lg cyber-panel rounded-xl overflow-hidden relative z-10">
         
-        if (timeEndInput.value < timeStartInput.value) {
-            endDateTimeObj.setDate(endDateTimeObj.getDate() + 1);
-        }
-        
-        const newEventData = {
-            summary: `${artistNameInput.value} - ${companySelect.value}`,
-            location: studioSelect.value,
-            // AQUÍ AÑADIMOS EL CORREO A LA DESCRIPCIÓN
-            description: `(Reserva solicitada por ${pmEmailInput.value} y aprobada vía StudioFlow)`,
-            start: { dateTime: startDateTimeObj.toISOString() },
-            end: { dateTime: endDateTimeObj.toISOString() }
-        };
+        <div class="px-8 pt-8 pb-6 border-b border-orange-500/20 text-center relative">
+            <div class="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-1 bg-orange-500 blur-sm opacity-60"></div>
+            
+            <div class="flex justify-center mb-6">
+                <img src="https://lh3.googleusercontent.com/d/1kPc31kTxAfVCS2-1Kr7w8NFm7RK_3hM1" alt="Mapa Studios" class="h-20 w-auto object-contain rounded-xl drop-shadow-[0_0_8px_rgba(255,85,0,0.3)]">
+            </div>
 
-        const payload = {
-            action: 'updateSessionStatus',
-            token: token,
-            status: statusAction, // 'approve' o 'reject'
-            pmEmail: pmEmailInput.value,
-            events: [newEventData] 
-        };
+            <h1 class="text-3xl font-bold text-orange-500 tracking-wider text-glow uppercase">Revisión de Reserva</h1>
+            <p class="text-sm text-slate-500 mt-2 font-medium">Petición excepcional por límite de reglas o fuera de horario</p>
+        </div>
 
-        fetch(GAS_WEBAPP_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        })
-        .then(() => {
-            actionButtons.classList.add('hidden');
-            if(statusAction === 'approve') {
-                showStatus('success', '¡Aprobada! La sesión se ha añadido al calendario y el PM ha sido notificado.');
-            } else {
-                showStatus('success', 'Rechazada. La solicitud se ha eliminado y se ha notificado al PM.');
-            }
-        })
-        .catch(error => {
-            showStatus('error', 'Error de conexión. Intenta de nuevo.');
-            actionButtons.classList.remove('opacity-50', 'pointer-events-none');
-            approveBtn.disabled = false;
-            rejectBtn.disabled = false;
-        });
-    }
+        <div id="loadingSection" class="p-8 text-center">
+            <div class="flex items-center justify-center gap-3">
+                <div class="loader-spinner"></div>
+                <span class="text-orange-600 font-bold font-scifi uppercase tracking-wider">Cargando detalles de la solicitud...</span>
+            </div>
+        </div>
 
-    // Asignar eventos a los botones
-    approveBtn.addEventListener('click', () => sendStatusUpdate('approve'));
-    rejectBtn.addEventListener('click', () => sendStatusUpdate('reject'));
+        <form id="approvalForm" class="p-8 space-y-6 hidden">
+            <input type="hidden" id="pmEmail" name="pmEmail">
 
-    // --- FUNCIONES DE AYUDA ---
-    function showError(message) {
-        loadingSection.innerHTML = `
-            <div class="p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg text-yellow-500">
-                <i class="fa-solid fa-triangle-exclamation mb-2 text-2xl"></i>
-                <p>${message}</p>
-            </div>`;
-    }
-    
-    function showStatus(type, htmlContent) {
-        statusMessage.classList.remove('hidden');
-        statusMessage.className = 'rounded-lg p-4 text-sm font-medium text-center border'; 
-        if (type === 'success') {
-            statusMessage.classList.add('bg-emerald-500/10', 'text-emerald-400', 'border-emerald-500/20');
-            statusMessage.innerHTML = `<i class="fa-solid fa-check-circle mr-2"></i> ${htmlContent}`;
-        } else { 
-            statusMessage.classList.add('bg-red-500/10', 'text-red-400', 'border-red-500/20');
-            statusMessage.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-2"></i> ${htmlContent}`;
-        }
-    }
-});
+            <div class="space-y-5">
+                <div>
+                    <label class="block text-[11px] uppercase tracking-widest text-orange-600 mb-1.5 font-bold">Nombre del Artista(s)</label>
+                    <input type="text" id="artistName" required class="w-full cyber-input rounded-lg px-4 py-3">
+                </div>
+
+                <div>
+                    <label class="block text-[11px] uppercase tracking-widest text-orange-600 mb-1.5 font-bold">Compañía</label>
+                    <input type="text" id="companySelect" required class="w-full cyber-input rounded-lg px-4 py-3">
+                </div>
+
+                <div>
+                    <label class="block text-[11px] uppercase tracking-widest text-orange-600 mb-1.5 font-bold">Estudio Requerido</label>
+                    <div class="relative">
+                        <select id="studioSelect" required class="w-full cyber-input rounded-lg px-4 py-3 appearance-none">
+                            <option value="Control 1">Control 1</option>
+                            <option value="Control 2 + Sala B">Control 2 + Sala B</option>
+                            <option value="Control 3">Control 3</option>
+                            <option value="Control 5">Control 5</option>
+                            <option value="Control 6">Control 6</option>
+                            <option value="Suite de producción">Suite de producción</option>
+                        </select>
+                        <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 transform -translate-y-1/2 text-orange-500 pointer-events-none"></i>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="md:col-span-3">
+                        <label class="block text-[11px] uppercase tracking-widest text-orange-600 mb-1.5 font-bold">Día</label>
+                        <input type="date" id="bookingDate" required class="w-full cyber-input rounded-lg px-4 py-3">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] uppercase tracking-widest text-orange-600 mb-1.5 font-bold">Hora Inicio</label>
+                        <input type="time" id="timeStart" required class="w-full cyber-input rounded-lg px-4 py-3 text-center">
+                    </div>
+                    <div class="flex items-center justify-center pt-5 hidden md:flex text-orange-400">
+                        <i class="fa-solid fa-arrow-right drop-shadow-[0_0_3px_rgba(255,85,0,0.3)]"></i>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] uppercase tracking-widest text-orange-600 mb-1.5 font-bold">Hora Fin</label>
+                        <input type="time" id="timeEnd" required class="w-full cyber-input rounded-lg px-4 py-3 text-center">
+                    </div>
+                </div>
+            </div>
+
+            <div id="statusMessage" class="hidden rounded-lg p-4 text-sm font-bold text-center border backdrop-blur-md"></div>
+
+            <div class="flex gap-4" id="actionButtons">
+                <button type="button" id="rejectBtn" class="w-1/3 cyber-btn-red font-bold rounded-lg px-4 py-3.5 font-scifi text-lg">
+                    <i class="fa-solid fa-xmark mr-1"></i> Rechazar
+                </button>
+                <button type="button" id="approveBtn" class="w-2/3 cyber-btn-green font-bold rounded-lg px-4 py-3.5 font-scifi text-lg">
+                    <i class="fa-solid fa-check mr-1"></i> Aprobar
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script src="approval.js"></script>
+</body>
+</html>

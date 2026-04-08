@@ -92,7 +92,6 @@ function showBookingForm(userInfo) {
     bookingForm.classList.remove('hidden');
     userEmailDisplay.textContent = userInfo.email; 
     
-    // Generar las opciones del desplegable según el correo del usuario
     filterCompaniesByEmail(userInfo.email);
 }
 
@@ -272,8 +271,8 @@ form.addEventListener('submit', async function(e) {
             exceptionReason = `La compañía ${company} tiene un límite de uso simultáneo de ${limitText} al día. (En uso: ${occupiedList}).`;
         }
 
-        // --- PREPARAMOS LOS DATOS DEL EVENTO ---
-        let baseDescription = `Reserva gestionada vía StudioFlow por ${currentUserInfo.email}.\n\nArtista: ${artist}\nCompañía: ${company}`;
+        // --- PREPARAMOS LOS DATOS DEL EVENTO (CON EL NOMBRE CEREBRO) ---
+        let baseDescription = `Reserva gestionada vía Cerebro por ${currentUserInfo.email}.\n\nArtista: ${artist}\nCompañía: ${company}`;
         let eventsToCreate = [];
 
         if (includesSuite) {

@@ -4,90 +4,88 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>StudioFlow - Portal de Solicitudes</title>
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts: Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Librería Oficial de Google Identity Services -->
+    <!-- Google Identity -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <!-- Estilos Centralizados -->
     <link rel="stylesheet" href="styles.css">
-
 </head>
-<body class="min-h-screen flex items-center justify-center p-4">
+<body class="min-h-screen flex items-center justify-center p-4 relative">
 
-    <!-- Contenedor Principal -->
-    <div class="w-full max-w-lg bg-slate-800 rounded-2xl shadow-2xl border border-slate-700 overflow-hidden relative">
+    <div class="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_50%,_rgba(0,0,0,0.03)_100%)] z-0"></div>
+
+    <div class="w-full max-w-lg cyber-panel rounded-xl overflow-hidden relative z-10">
         
-        <!-- Header -->
-        <div class="bg-slate-900 px-8 py-6 border-b border-slate-700 text-center">
-            <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-indigo-500/10 mb-4">
-                <i class="fa-solid fa-wave-square text-indigo-500 text-2xl"></i>
+        <div class="px-8 pt-8 pb-6 border-b border-orange-500/20 text-center relative">
+            <div class="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-1 bg-orange-500 blur-sm opacity-60"></div>
+            
+            <div class="flex justify-center mb-6">
+                <img src="https://lh3.googleusercontent.com/d/1kPc31kTxAfVCS2-1Kr7w8NFm7RK_3hM1" alt="Mapa Studios" class="h-20 w-auto object-contain rounded-xl drop-shadow-[0_0_8px_rgba(255,85,0,0.3)]">
             </div>
-            <h1 class="text-2xl font-bold text-white tracking-tight">Solicitud de Estudio</h1>
-            <p class="text-sm text-slate-400 mt-1">Gestión directa vinculada a tu Google Workspace.</p>
+
+            <h1 class="text-3xl font-bold text-orange-500 tracking-wider text-glow uppercase" id="mainTitle">Solicitud de Estudio</h1>
+            <p class="text-sm text-slate-500 mt-2 font-medium">Gestión directa vinculada a tu Google Workspace.</p>
         </div>
 
-        <!-- SECCIÓN 1: Login con Google (Visible por defecto) -->
+        <!-- SECCIÓN 1: Login -->
         <div id="loginSection" class="p-8 text-center space-y-6">
-            <div class="bg-slate-900/50 p-6 rounded-xl border border-slate-700/50">
-                <i class="fa-brands fa-google text-4xl text-slate-400 mb-4"></i>
-                <h3 class="text-lg font-medium text-white mb-2">Autenticación Requerida</h3>
-                <p class="text-sm text-slate-400 mb-6">Inicia sesión con tu correo corporativo para agendar sesiones a tu nombre.</p>
+            <div class="bg-white/60 p-6 rounded-xl border border-orange-500/30 shadow-[inset_0_0_15px_rgba(255,85,0,0.05)] backdrop-blur-sm">
+                <i class="fa-solid fa-fingerprint text-4xl text-orange-500/80 mb-4 drop-shadow-[0_0_5px_rgba(255,85,0,0.3)]"></i>
+                <h3 class="text-lg font-bold text-slate-800 mb-2 font-scifi uppercase tracking-wide">Identificación Requerida</h3>
+                <p class="text-sm text-slate-500 mb-6 font-medium">Inicia sesión con tu correo corporativo para acceder a la red del estudio.</p>
                 
-                <button id="googleLoginBtn" class="w-full bg-white hover:bg-slate-100 text-slate-900 font-semibold rounded-lg px-4 py-3 shadow transition-colors flex items-center justify-center gap-3">
+                <button id="googleLoginBtn" class="w-full bg-white hover:bg-orange-50 text-slate-800 border border-orange-500/50 font-semibold rounded-lg px-4 py-3 shadow-md transition-all flex items-center justify-center gap-3">
                     <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-5 h-5" alt="Google">
                     <span>Continuar con Google</span>
                 </button>
 
-                <!-- Mensaje de Error de Login -->
-                <div id="loginError" class="hidden mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-sm text-red-400 font-medium">
-                </div>
+                <div id="loginError" class="hidden mt-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600 font-bold shadow-sm"></div>
             </div>
         </div>
 
-        <!-- SECCIÓN 2: Formulario (Oculto hasta hacer login) -->
+        <!-- SECCIÓN 2: Formulario -->
         <form id="bookingForm" class="p-8 space-y-6 hidden">
             
-            <!-- Perfil del PM Autenticado -->
-            <div class="flex items-center bg-indigo-500/10 p-4 rounded-xl border border-indigo-500/20">
-                <div class="w-10 h-10 rounded-full bg-indigo-500 flex items-center justify-center text-white font-bold" id="userInitial">
-                    <i class="fa-solid fa-user"></i>
-                </div>
-                <div class="ml-3">
-                    <p class="text-sm font-medium text-white">Sesión iniciada como:</p>
-                    <p class="text-xs text-indigo-300" id="userEmail">cargando...</p>
-                </div>
-                <button type="button" id="logoutBtn" class="ml-auto text-xs text-slate-400 hover:text-white underline">Salir</button>
+            <div id="modificationAlert" class="hidden cyber-alert rounded-lg p-4 mb-4 text-sm text-amber-700">
+                <i class="fa-solid fa-pen-to-square mr-2 text-orange-500"></i> <b class="uppercase tracking-wider font-scifi font-bold">Modo de Modificación:</b> Ingresa los nuevos datos. Al confirmar, tu reserva será reemplazada.
             </div>
 
-            <!-- Detalles de la Reserva -->
-            <div class="space-y-4">
+            <div class="flex items-center bg-white/70 p-4 rounded-xl border border-orange-500/40 shadow-[inset_0_0_10px_rgba(255,85,0,0.05)]">
+                <div class="w-10 h-10 rounded-full bg-white border border-orange-500 flex items-center justify-center text-orange-500 shadow-[0_0_8px_rgba(255,85,0,0.3)]" id="userInitial">
+                    <svg viewBox="0 0 24 24" fill="currentColor" class="w-7 h-7 drop-shadow-[0_0_3px_rgba(255,85,0,0.5)]">
+                        <rect x="1" y="11.5" width="2.5" height="5" rx="1.25"/>
+                        <rect x="20.5" y="11.5" width="2.5" height="5" rx="1.25"/>
+                        <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.5 2 3.5 6.5 3.5 12v4.5C3.5 20 7 22 12 22s8.5-2 8.5-5.5V12C20.5 6.5 17.5 2 12 2z M4 11.5C5.5 10.5 8.5 10 12 10s6.5.5 8 1.5v3c-1.5 1-4.5 1.5-8 1.5s-6.5-.5-8-1.5v-3z M8.5 18c1.2.6 2.4.9 3.5.9s2.3-.3 3.5-.9v1c-1.2.6-2.4.9-3.5.9s-2.3-.3-3.5-.9v-1z M10 20.5c.6.3 1.3.5 2 .5s1.4-.2 2-.5v.8c-.6.3-1.3.5-2 .5s-1.4-.2-2-.5v-.8z" />
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <p class="text-[11px] uppercase tracking-widest text-orange-600 font-bold mb-0.5">Usuario Autorizado</p>
+                    <p class="text-sm font-bold text-slate-800" id="userEmail">cargando...</p>
+                </div>
+                <button type="button" id="logoutBtn" class="ml-auto text-xs font-bold text-orange-500/70 hover:text-orange-500 hover:text-glow transition-all uppercase tracking-wider">Desconectar</button>
+            </div>
+
+            <div class="space-y-5">
                 <div>
-                    <label class="block text-sm font-medium text-slate-300 mb-1">Nombre del Artista(s)</label>
-                    <input type="text" id="artistName" required
-                        class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition-colors" 
-                        placeholder="Ej. The Weeknd, Rosalía...">
+                    <label class="block text-[11px] uppercase tracking-widest text-orange-600 mb-1.5 font-bold">Nombre del Artista(s)</label>
+                    <input type="text" id="artistName" required class="w-full cyber-input rounded-lg px-4 py-3" placeholder="Ej. The Weeknd, Rosalía...">
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-slate-300 mb-1">Compañía</label>
+                    <label class="block text-[11px] uppercase tracking-widest text-orange-600 mb-1.5 font-bold">Compañía</label>
                     <div class="relative">
-                        <select id="companySelect" required
-                            class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white appearance-none focus:outline-none focus:border-indigo-500 transition-colors">
+                        <select id="companySelect" required class="w-full cyber-input rounded-lg px-4 py-3 appearance-none">
                             <option value="" disabled selected>Selecciona una compañía...</option>
                         </select>
-                        <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-500 pointer-events-none"></i>
+                        <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 transform -translate-y-1/2 text-orange-500 pointer-events-none"></i>
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-slate-300 mb-1">Estudio Requerido</label>
+                    <label class="block text-[11px] uppercase tracking-widest text-orange-600 mb-1.5 font-bold">Estudio Requerido</label>
                     <div class="relative">
-                        <select id="studioSelect" required
-                            class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white appearance-none focus:outline-none focus:border-indigo-500 transition-colors">
+                        <select id="studioSelect" required class="w-full cyber-input rounded-lg px-4 py-3 appearance-none">
                             <option value="" disabled selected>Selecciona un espacio...</option>
                             <option value="Control 1">Control 1</option>
                             <option value="Control 2 + Sala B">Control 2 + Sala B</option>
@@ -96,70 +94,63 @@
                             <option value="Control 6">Control 6</option>
                             <option value="Suite de producción">Suite de producción</option>
                         </select>
-                        <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-500 pointer-events-none"></i>
+                        <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 transform -translate-y-1/2 text-orange-500 pointer-events-none"></i>
                     </div>
                 </div>
 
-                <!-- Desplegable condicional para Sala Extra -->
                 <div id="extraRoomContainer" class="hidden">
-                    <label class="block text-sm font-medium text-slate-300 mb-1">¿Necesita sala de grabación extra?</label>
+                    <label class="block text-[11px] uppercase tracking-widest text-orange-600 mb-1.5 font-bold">¿Necesita sala de grabación extra?</label>
                     <div class="relative">
-                        <select id="extraRoomSelect"
-                            class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white appearance-none focus:outline-none focus:border-indigo-500 transition-colors">
+                        <select id="extraRoomSelect" class="w-full cyber-input rounded-lg px-4 py-3 appearance-none">
                             <option value="" disabled selected>Selecciona una opción...</option>
-                            <option value="Control sin sala de grabacion.">Control sin sala de grabacion.</option>
+                            <option value="Control sin sala de grabacion.">Control sin sala de grabación.</option>
                             <option value="Control + Suite de producción">Control + Suite de producción</option>
                         </select>
-                        <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-500 pointer-events-none"></i>
+                        <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 transform -translate-y-1/2 text-orange-500 pointer-events-none"></i>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div class="md:col-span-3">
-                        <label class="block text-sm font-medium text-slate-300 mb-1">Día</label>
-                        <input type="date" id="bookingDate" required
-                            class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition-colors">
+                        <label class="block text-[11px] uppercase tracking-widest text-orange-600 mb-1.5 font-bold">Día</label>
+                        <input type="date" id="bookingDate" required class="w-full cyber-input rounded-lg px-4 py-3">
                     </div>
                     
                     <div>
-                        <label class="block text-sm font-medium text-slate-300 mb-1">Hora Inicio</label>
-                        <input type="time" id="timeStart" required
-                            class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition-colors">
+                        <label class="block text-[11px] uppercase tracking-widest text-orange-600 mb-1.5 font-bold">Hora Inicio</label>
+                        <input type="time" id="timeStart" required class="w-full cyber-input rounded-lg px-4 py-3 text-center">
                     </div>
                     
-                    <div class="flex items-center justify-center pt-6 hidden md:flex text-slate-500">
-                        <i class="fa-solid fa-arrow-right"></i>
+                    <div class="flex items-center justify-center pt-5 hidden md:flex text-orange-400">
+                        <i class="fa-solid fa-arrow-right drop-shadow-[0_0_3px_rgba(255,85,0,0.3)]"></i>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-slate-300 mb-1">Hora Fin</label>
-                        <input type="time" id="timeEnd" required
-                            class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition-colors">
+                        <label class="block text-[11px] uppercase tracking-widest text-orange-600 mb-1.5 font-bold">Hora Fin</label>
+                        <input type="time" id="timeEnd" required class="w-full cyber-input rounded-lg px-4 py-3 text-center">
                     </div>
                 </div>
 
-                <!-- Alerta de Horario Extendido (Fuera de 10:00 a 22:00) -->
-                <div id="extendedHoursAlert" class="hidden bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4 mt-2 transition-all">
+                <div id="extendedHoursAlert" class="hidden cyber-alert rounded-lg p-4 mt-2">
                     <div class="flex items-start gap-3">
-                        <i class="fa-solid fa-clock-rotate-left text-yellow-500 mt-0.5"></i>
+                        <i class="fa-solid fa-clock-rotate-left text-orange-500 mt-0.5 text-glow"></i>
                         <div>
-                            <h4 class="text-sm font-bold text-yellow-500">Petición Especial: Fuera de horario</h4>
-                            <p class="text-xs text-yellow-200/80 mt-1">El horario operativo del estudio es de 10:00 a 22:00. Al enviar, se generará una petición de aprobación por correo electrónico.</p>
+                            <h4 class="text-sm font-bold text-orange-600 uppercase tracking-wide font-scifi">Petición Especial: Fuera de horario</h4>
+                            <p class="text-xs text-slate-600 mt-1 font-medium">El horario operativo del estudio es de 10:00 a 22:00. Al enviar, se generará una petición de aprobación.</p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Area de Mensajes de Estado -->
-            <div id="statusMessage" class="hidden rounded-lg p-4 text-sm font-medium text-center border"></div>
+            <div id="statusMessage" class="hidden rounded-lg p-4 text-sm font-bold text-center border backdrop-blur-md"></div>
 
-            <button type="submit" id="submitBtn" 
-                class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-lg px-4 py-3.5 shadow-lg shadow-indigo-500/30 transition-all transform active:scale-95 flex items-center justify-center gap-2">
-                <i class="fa-regular fa-calendar-check"></i>
-                <span>Procesar Solicitud</span>
+            <button type="submit" id="submitBtn" class="w-full cyber-button font-bold rounded-lg px-4 py-4 flex items-center justify-center gap-3 font-scifi text-lg">
+                <i class="fa-solid fa-power-off" id="btnIcon"></i>
+                <span id="btnText">Procesar Solicitud</span>
             </button>
         </form>
     </div>
+
     <script src="script.js"></script>
 </body>
 </html>

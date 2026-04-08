@@ -3,51 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aprobar Reserva</title>
+    <title>StudioFlow - Aprobar Reserva</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
-<body class="min-h-screen flex items-center justify-center p-4">
+<body class="min-h-screen flex items-center justify-center p-4 relative">
 
-    <div class="w-full max-w-lg bg-slate-800 rounded-2xl shadow-2xl border border-slate-700 overflow-hidden relative">
-        <div class="bg-slate-900 px-8 py-6 border-b border-slate-700 text-center">
-            <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-yellow-500/10 mb-4">
-                <i class="fa-solid fa-clipboard-check text-yellow-500 text-2xl"></i>
+    <div class="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_50%,_rgba(0,0,0,0.03)_100%)] z-0"></div>
+
+    <div class="w-full max-w-lg cyber-panel rounded-xl overflow-hidden relative z-10">
+        
+        <div class="px-8 pt-8 pb-6 border-b border-orange-500/20 text-center relative">
+            <div class="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-1 bg-orange-500 blur-sm opacity-60"></div>
+            
+            <div class="flex justify-center mb-6">
+                <img src="https://lh3.googleusercontent.com/d/1kPc31kTxAfVCS2-1Kr7w8NFm7RK_3hM1" alt="Mapa Studios" class="h-20 w-auto object-contain rounded-xl drop-shadow-[0_0_8px_rgba(255,85,0,0.3)]">
             </div>
-            <h1 class="text-2xl font-bold text-white tracking-tight">Revisión de Reserva</h1>
-            <p class="text-sm text-slate-400 mt-1">Petición excepcional por límite de reglas o fuera de horario</p>
+
+            <h1 class="text-3xl font-bold text-orange-500 tracking-wider text-glow uppercase">Revisión de Reserva</h1>
+            <p class="text-sm text-slate-500 mt-2 font-medium">Petición excepcional por límite de reglas o fuera de horario</p>
         </div>
 
         <div id="loadingSection" class="p-8 text-center">
             <div class="flex items-center justify-center gap-3">
                 <div class="loader-spinner"></div>
-                <span class="text-slate-400">Cargando detalles de la solicitud...</span>
+                <span class="text-orange-600 font-bold font-scifi uppercase tracking-wider">Cargando detalles de la solicitud...</span>
             </div>
         </div>
 
         <form id="approvalForm" class="p-8 space-y-6 hidden">
             <input type="hidden" id="pmEmail" name="pmEmail">
 
-            <div class="space-y-4">
+            <div class="space-y-5">
                 <div>
-                    <label class="block text-sm font-medium text-slate-300 mb-1">Nombre del Artista(s)</label>
-                    <input type="text" id="artistName" required
-                        class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition-colors">
+                    <label class="block text-[11px] uppercase tracking-widest text-orange-600 mb-1.5 font-bold">Nombre del Artista(s)</label>
+                    <input type="text" id="artistName" required class="w-full cyber-input rounded-lg px-4 py-3">
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-slate-300 mb-1">Compañía</label>
-                    <input type="text" id="companySelect" required
-                        class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition-colors">
+                    <label class="block text-[11px] uppercase tracking-widest text-orange-600 mb-1.5 font-bold">Compañía</label>
+                    <input type="text" id="companySelect" required class="w-full cyber-input rounded-lg px-4 py-3">
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-slate-300 mb-1">Estudio Requerido</label>
+                    <label class="block text-[11px] uppercase tracking-widest text-orange-600 mb-1.5 font-bold">Estudio Requerido</label>
                     <div class="relative">
-                        <select id="studioSelect" required
-                            class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white appearance-none focus:outline-none focus:border-indigo-500 transition-colors">
+                        <select id="studioSelect" required class="w-full cyber-input rounded-lg px-4 py-3 appearance-none">
                             <option value="Control 1">Control 1</option>
                             <option value="Control 2 + Sala B">Control 2 + Sala B</option>
                             <option value="Control 3">Control 3</option>
@@ -55,39 +57,37 @@
                             <option value="Control 6">Control 6</option>
                             <option value="Suite de producción">Suite de producción</option>
                         </select>
-                        <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-500 pointer-events-none"></i>
+                        <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 transform -translate-y-1/2 text-orange-500 pointer-events-none"></i>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-slate-300 mb-1">Día</label>
-                        <input type="date" id="bookingDate" required
-                            class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition-colors">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="md:col-span-3">
+                        <label class="block text-[11px] uppercase tracking-widest text-orange-600 mb-1.5 font-bold">Día</label>
+                        <input type="date" id="bookingDate" required class="w-full cyber-input rounded-lg px-4 py-3">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-slate-300 mb-1">Hora Inicio</label>
-                        <input type="time" id="timeStart" required
-                            class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition-colors">
+                        <label class="block text-[11px] uppercase tracking-widest text-orange-600 mb-1.5 font-bold">Hora Inicio</label>
+                        <input type="time" id="timeStart" required class="w-full cyber-input rounded-lg px-4 py-3 text-center">
+                    </div>
+                    <div class="flex items-center justify-center pt-5 hidden md:flex text-orange-400">
+                        <i class="fa-solid fa-arrow-right drop-shadow-[0_0_3px_rgba(255,85,0,0.3)]"></i>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-slate-300 mb-1">Hora Fin</label>
-                        <input type="time" id="timeEnd" required
-                            class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition-colors">
+                        <label class="block text-[11px] uppercase tracking-widest text-orange-600 mb-1.5 font-bold">Hora Fin</label>
+                        <input type="time" id="timeEnd" required class="w-full cyber-input rounded-lg px-4 py-3 text-center">
                     </div>
                 </div>
             </div>
 
-            <div id="statusMessage" class="hidden rounded-lg p-4 text-sm font-medium text-center border"></div>
+            <div id="statusMessage" class="hidden rounded-lg p-4 text-sm font-bold text-center border backdrop-blur-md"></div>
 
             <div class="flex gap-4" id="actionButtons">
-                <button type="button" id="rejectBtn" 
-                    class="w-1/3 bg-red-600 hover:bg-red-500 text-white font-semibold rounded-lg px-4 py-3.5 shadow-lg shadow-red-500/30 transition-all transform active:scale-95">
+                <button type="button" id="rejectBtn" class="w-1/3 cyber-btn-red font-bold rounded-lg px-4 py-3.5 font-scifi text-lg">
                     <i class="fa-solid fa-xmark mr-1"></i> Rechazar
                 </button>
-                <button type="button" id="approveBtn" 
-                    class="w-2/3 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-lg px-4 py-3.5 shadow-lg shadow-emerald-500/30 transition-all transform active:scale-95">
-                    <i class="fa-solid fa-check mr-1"></i> Aprobar Reserva
+                <button type="button" id="approveBtn" class="w-2/3 cyber-btn-green font-bold rounded-lg px-4 py-3.5 font-scifi text-lg">
+                    <i class="fa-solid fa-check mr-1"></i> Aprobar
                 </button>
             </div>
         </form>

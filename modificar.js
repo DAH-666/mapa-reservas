@@ -5,13 +5,11 @@
 const GAS_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxdo2VYgXk9dnPg0G1A3tp1K-b2EdK-kJBsTBcK8Gm6LJCBxdZPb613N-Ee8vXq4bnQ1w/exec';
 
 document.addEventListener('DOMContentLoaded', () => {
-    // --- OBTENER ELEMENTOS DEL DOM ---
     const loadingSection = document.getElementById('loadingSection');
     const modificationForm = document.getElementById('modificationForm');
     const statusMessage = document.getElementById('statusMessage');
     const submitBtn = document.getElementById('submitBtn');
     
-    // Inputs del formulario
     const eventIdsInput = document.getElementById('eventIds');
     const artistNameInput = document.getElementById('artistName');
     const companySelect = document.getElementById('companySelect'); 
@@ -22,7 +20,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const timeStartInput = document.getElementById('timeStart');
     const timeEndInput = document.getElementById('timeEnd');
 
-    // --- 0. FUNCIÓN PARA CARGAR COMPAÑÍAS PERMITIDAS ---
     function filterCompaniesByEmail(email) {
         companySelect.innerHTML = '<option value="" disabled selected>Selecciona una compañía...</option>';
 
@@ -61,7 +58,6 @@ document.addEventListener('DOMContentLoaded', () => {
         filterCompaniesByEmail(e.target.value);
     });
 
-    // --- 1. CARGAR DATOS DEL EVENTO ---
     const urlParams = new URLSearchParams(window.location.search);
     const idsToModify = urlParams.get('ids') || urlParams.get('modify');
     const pmEmailParam = urlParams.get('pm');
@@ -113,7 +109,6 @@ document.addEventListener('DOMContentLoaded', () => {
             showError(`No se pudieron cargar los detalles: ${error.message}`);
         });
 
-    // --- 2. MANEJAR EL ENVÍO DEL FORMULARIO ---
     modificationForm.addEventListener('submit', function(e) {
         e.preventDefault();
 
@@ -131,7 +126,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const newEventData = {
             summary: `${artistNameInput.value} - ${companySelect.value}`,
             location: studioSelect.value,
-            // AQUÍ AÑADIMOS EL CORREO A LA DESCRIPCIÓN
             description: `(Reserva modificada desde StudioFlow por ${pmEmailInput.value})`,
             start: { dateTime: startDateTimeObj.toISOString() },
             end: { dateTime: endDateTimeObj.toISOString() }
@@ -151,33 +145,31 @@ document.addEventListener('DOMContentLoaded', () => {
         })
         .then(() => {
             showStatus('success', '¡Reserva modificada con éxito! Se ha enviado un nuevo correo de confirmación.');
-            submitBtn.innerHTML = '¡Cambios Guardados!';
-            submitBtn.classList.replace('bg-indigo-600', 'bg-emerald-600');
+            submitBtn.innerHTML = '<i class="fa-solid fa-check"></i> ¡Cambios Guardados!';
         })
         .catch(error => {
             showStatus('error', `Ocurrió un error al guardar los cambios.`);
             submitBtn.disabled = false;
-            submitBtn.innerHTML = 'Guardar Cambios';
+            submitBtn.innerHTML = '<i class="fa-solid fa-power-off" id="btnIcon"></i> <span id="btnText">Guardar Cambios</span>';
         });
     });
 
-    // --- FUNCIONES DE AYUDA ---
     function showError(message) {
         loadingSection.innerHTML = `
-            <div class="p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400">
+            <div class="p-4 bg-red-50 border border-red-300 rounded-lg text-red-600">
                 <h3 class="font-bold">Error</h3>
                 <p>${message}</p>
-                <a href="index.html" class="text-white underline mt-2 inline-block">Volver al portal</a>
+                <a href="portal_reservas.html" class="text-orange-500 underline mt-2 inline-block font-bold">Volver al portal</a>
             </div>`;
     }
     
     function showStatus(type, htmlContent) {
-        statusMessage.classList.remove('hidden');
-        statusMessage.className = 'rounded-lg p-4 text-sm font-medium text-center border'; 
+        statusMessage.classList.remove('hidden', 'bg-emerald-50', 'text-emerald-600', 'border-emerald-300', 'bg-red-50', 'text-red-600', 'border-red-300');
+        statusMessage.className = 'rounded-lg p-4 text-sm font-bold text-center border'; 
         if (type === 'success') {
-            statusMessage.classList.add('bg-emerald-500/10', 'text-emerald-400', 'border-emerald-500/20');
+            statusMessage.classList.add('bg-emerald-50', 'text-emerald-600', 'border-emerald-300');
         } else { 
-            statusMessage.classList.add('bg-red-500/10', 'text-red-400', 'border-red-500/20');
+            statusMessage.classList.add('bg-red-50', 'text-red-600', 'border-red-300');
         }
         statusMessage.innerHTML = htmlContent;
     }

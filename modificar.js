@@ -115,7 +115,6 @@ document.addEventListener('DOMContentLoaded', () => {
         submitBtn.disabled = true;
         submitBtn.innerHTML = `<span class="loader-spinner"></span> Guardando cambios...`;
         
-        // LÓGICA INTELIGENTE DE MEDIANOCHE
         const startDateTimeObj = new Date(`${bookingDateInput.value}T${timeStartInput.value}:00`);
         const endDateTimeObj = new Date(`${bookingDateInput.value}T${timeEndInput.value}:00`);
         
@@ -123,10 +122,11 @@ document.addEventListener('DOMContentLoaded', () => {
             endDateTimeObj.setDate(endDateTimeObj.getDate() + 1);
         }
 
+        // --- NOMBRE CEREBRO EN LA MODIFICACIÓN ---
         const newEventData = {
             summary: `${artistNameInput.value} - ${companySelect.value}`,
             location: studioSelect.value,
-            description: `(Reserva modificada desde StudioFlow por ${pmEmailInput.value})`,
+            description: `(Reserva modificada desde Cerebro por ${pmEmailInput.value})`,
             start: { dateTime: startDateTimeObj.toISOString() },
             end: { dateTime: endDateTimeObj.toISOString() }
         };
